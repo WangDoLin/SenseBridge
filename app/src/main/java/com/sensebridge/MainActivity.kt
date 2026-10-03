@@ -33,6 +33,8 @@ class MainActivity : ComponentActivity() {
     private val homeViewModel: HomeViewModel by viewModels()
     private val deafAssistViewModel: com.sensebridge.ui.deaf.DeafAssistViewModel by viewModels()
     private val blindAssistViewModel: com.sensebridge.ui.blind.BlindAssistViewModel by viewModels()
+    private val ocrReaderViewModel: com.sensebridge.ui.ocr.OcrReaderViewModel by viewModels()
+    private val communicationViewModel: com.sensebridge.ui.communication.CommunicationViewModel by viewModels()
 
     private val requestPermissionsLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -53,7 +55,9 @@ class MainActivity : ComponentActivity() {
                     SenseBridgeNavGraph(
                         homeViewModel = homeViewModel,
                         deafAssistViewModel = deafAssistViewModel,
-                        blindAssistViewModel = blindAssistViewModel
+                        blindAssistViewModel = blindAssistViewModel,
+                        ocrReaderViewModel = ocrReaderViewModel,
+                        communicationViewModel = communicationViewModel
                     )
                 }
             }
@@ -88,7 +92,9 @@ class MainActivity : ComponentActivity() {
 fun SenseBridgeNavGraph(
     homeViewModel: HomeViewModel,
     deafAssistViewModel: com.sensebridge.ui.deaf.DeafAssistViewModel,
-    blindAssistViewModel: com.sensebridge.ui.blind.BlindAssistViewModel
+    blindAssistViewModel: com.sensebridge.ui.blind.BlindAssistViewModel,
+    ocrReaderViewModel: com.sensebridge.ui.ocr.OcrReaderViewModel,
+    communicationViewModel: com.sensebridge.ui.communication.CommunicationViewModel
 ) {
     val navController = rememberNavController()
 
@@ -115,10 +121,16 @@ fun SenseBridgeNavGraph(
             )
         }
         composable(NavRoute.OcrReader.route) {
-            OcrReaderScreen(onBack = { navController.popBackStack() })
+            OcrReaderScreen(
+                viewModel = ocrReaderViewModel,
+                onBack = { navController.popBackStack() }
+            )
         }
         composable(NavRoute.Communication.route) {
-            CommunicationScreen(onBack = { navController.popBackStack() })
+            CommunicationScreen(
+                viewModel = communicationViewModel,
+                onBack = { navController.popBackStack() }
+            )
         }
     }
 }
