@@ -11,6 +11,10 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 
+import com.sensebridge.input.sound.DecibelEnergyGate
+import com.sensebridge.input.sound.SoundClassifier
+import com.sensebridge.input.sound.TFLiteAudioClassifier
+
 @Module
 @InstallIn(SingletonComponent::class)
 abstract class CoreBindsModule {
@@ -20,6 +24,12 @@ abstract class CoreBindsModule {
     abstract fun bindHapticManager(
         androidHapticManager: AndroidHapticManager
     ): HapticManager
+
+    @Binds
+    @Singleton
+    abstract fun bindSoundClassifier(
+        tfLiteAudioClassifier: TFLiteAudioClassifier
+    ): SoundClassifier
 }
 
 @Module
@@ -37,4 +47,11 @@ object CoreProvidesModule {
     fun provideMultimodalSynthesizer(): MultimodalSynthesizer {
         return MultimodalSynthesizer()
     }
+
+    @Provides
+    @Singleton
+    fun provideDecibelEnergyGate(): DecibelEnergyGate {
+        return DecibelEnergyGate()
+    }
 }
+

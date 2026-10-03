@@ -1,0 +1,34 @@
+package com.sensebridge.input.sound
+
+import com.sensebridge.core.model.PriorityLevel
+
+/**
+ * Result of an audio classification inference.
+ */
+data class AudioClassificationResult(
+    val label: String,
+    val vietnameseTitle: String,
+    val spokenText: String,
+    val confidence: Float,
+    val priority: PriorityLevel
+)
+
+/**
+ * Interface defining contract for audio classification models (YAMNet, LiteRT, or heuristics).
+ */
+interface SoundClassifier {
+    /**
+     * Runs inference on the normalized float PCM audio buffer (-1.0 to +1.0).
+     */
+    fun classify(audioSamples: FloatArray): AudioClassificationResult?
+
+    /**
+     * Releases native inference sessions and buffers.
+     */
+    fun release()
+
+    /**
+     * Whether the model weights are loaded and ready.
+     */
+    val isModelLoaded: Boolean
+}

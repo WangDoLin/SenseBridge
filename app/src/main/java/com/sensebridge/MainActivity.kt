@@ -31,6 +31,7 @@ import dagger.hilt.android.AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
     private val homeViewModel: HomeViewModel by viewModels()
+    private val deafAssistViewModel: com.sensebridge.ui.deaf.DeafAssistViewModel by viewModels()
 
     private val requestPermissionsLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -48,7 +49,10 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = BgDark
                 ) {
-                    SenseBridgeNavGraph(homeViewModel = homeViewModel)
+                    SenseBridgeNavGraph(
+                        homeViewModel = homeViewModel,
+                        deafAssistViewModel = deafAssistViewModel
+                    )
                 }
             }
         }
@@ -79,7 +83,10 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun SenseBridgeNavGraph(homeViewModel: HomeViewModel) {
+fun SenseBridgeNavGraph(
+    homeViewModel: HomeViewModel,
+    deafAssistViewModel: com.sensebridge.ui.deaf.DeafAssistViewModel
+) {
     val navController = rememberNavController()
 
     NavHost(
@@ -93,7 +100,10 @@ fun SenseBridgeNavGraph(homeViewModel: HomeViewModel) {
             )
         }
         composable(NavRoute.DeafAssist.route) {
-            DeafAssistScreen(onBack = { navController.popBackStack() })
+            DeafAssistScreen(
+                viewModel = deafAssistViewModel,
+                onBack = { navController.popBackStack() }
+            )
         }
         composable(NavRoute.BlindAssist.route) {
             BlindAssistScreen(onBack = { navController.popBackStack() })
