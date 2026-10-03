@@ -1,0 +1,103 @@
+package com.sensebridge.core.engine
+
+import android.util.Log
+import com.sensebridge.core.dispatcher.SensoryDispatcher
+import com.sensebridge.core.model.PriorityLevel
+import com.sensebridge.core.model.SenseEvent
+import com.sensebridge.output.audio.TextToSpeechManager
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
+import java.util.concurrent.CopyOnWriteArrayList
+import javax.inject.Inject
+import javax.inject.Singleton
+
+/**
+ * Central nervous system of SenseBridge.
+ * Ingests, debounces, synthesizes, and dispatches sensory events across modalities.
+ */
+@Singleton
+class EventEngine @Inject constructor(
+    private val debouncer: SmartEventDebouncer,
+    private val synthesizer: MultimodalSynthesizer,
+    private val dispatcher: SensoryDispatcher,
+    private val ttsManager: TextToSpeechManager
+) {
+    companion object {
+        private const val TAG = "EventEngine"
+        private const val MAX_HISTORY_SIZE = 30
+    }
+
+    private val engineScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
+
+    private val _isPaused = MutableStateFlow(false)
+    val isPaused: StateFlow<Boolean> = _isPaused.asStateFlow()
+
+    private val _recentEvents = MutableStateFlow<List<SenseEvent>>(emptyList())
+    val recentEvents: StateFlow<List<SenseEvent>> = _recentEvents.asStateFlow()
+
+    private val eventHistory = CopyOnWriteArrayList<SenseEvent>()
+
+    /**
+     * Ingests a new candidate sensory event from any source.
+     */
+    fun submitEvent(rawEvent: SenseEvent) {
+        if (_isPaused.value) {
+            Log.d(TAG, "Event dropped: EventEngine is currently paused.")
+            return
+        }
+
+        engineScope.launch {
+            // 1. Cross-modal fusion
+            val fusedEvent = synthesizer.processOrFuse(rawEvent)
+
+            // 2. Debounce and frequency suppression
+            if (!debouncer.shouldProcess(fusedEvent)) {
+                Log.d(TAG, "Debounced event: ${fusedEvent.label} (${fusedEvent.source})")
+                return@launch
+            }
+
+            // 3. Preemption logic for urgent alarms
+            if (fusedEvent.priority == PriorityLevel.CRITICAL_P0) {
+                ttsManager.stopImmediately()
+            }
+
+            // 4. Record in history
+            recordEvent(fusedEvent)
+
+            // 5. Dispatch to configured hardware output channels
+            dispatcher.dispatch(fusedEvent)
+        }
+    }
+
+    private fun recordEvent(event: SenseEvent) {
+        eventHistory.add(0, event)
+        if (eventHistory.size > MAX_HISTORY_SIZE) {
+            eventHistory.removeAt(eventHistory.size - 1)
+        }
+        _recentEvents.value = eventHistory.toList()
+    }
+
+    /**
+     * Toggles pause/active state for all sensing.
+     */
+    fun togglePause() {
+        _isPaused.value = !_isPaused.value
+        if (_isPaused.value) {
+            ttsManager.stopImmediately()
+        }
+    }
+
+    /**
+     * Resets event history and debouncers.
+     */
+    fun clearHistory() {
+        eventHistory.clear()
+        _recentEvents.value = emptyList()
+        debouncer.reset()
+    }
+}

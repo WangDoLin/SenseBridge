@@ -1,0 +1,16 @@
+<resources>
+    <string name="app_name">SenseBridge</string>
+    <string name="app_tagline">AI Sensory Assistant</string>
+    <string name="mode_vision">Vision Assist</string>
+    <string name="mode_sound">Sound Assist</string>
+    <string name="mode_ocr">OCR Reader</string>
+    <string name="mode_communication">Communication</string>
+    <string name="mode_settings">Settings</string>
+    
+    <!-- Accessibility Labels -->
+    <string name="cd_home_button">Return to home screen</string>
+    <string name="cd_pause_button">Pause sensing</string>
+    <string name="cd_resume_button">Resume sensing</string>
+    <string name="cd_bluetooth_status">Bluetooth headset connection status</string>
+    <string name="cd_emergency_phrase">Emergency message button</string>
+</resources>
