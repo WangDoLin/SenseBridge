@@ -35,6 +35,7 @@ class MainActivity : ComponentActivity() {
     private val blindAssistViewModel: com.sensebridge.ui.blind.BlindAssistViewModel by viewModels()
     private val ocrReaderViewModel: com.sensebridge.ui.ocr.OcrReaderViewModel by viewModels()
     private val communicationViewModel: com.sensebridge.ui.communication.CommunicationViewModel by viewModels()
+    private val settingsViewModel: com.sensebridge.ui.settings.SettingsViewModel by viewModels()
 
     private val requestPermissionsLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -57,7 +58,8 @@ class MainActivity : ComponentActivity() {
                         deafAssistViewModel = deafAssistViewModel,
                         blindAssistViewModel = blindAssistViewModel,
                         ocrReaderViewModel = ocrReaderViewModel,
-                        communicationViewModel = communicationViewModel
+                        communicationViewModel = communicationViewModel,
+                        settingsViewModel = settingsViewModel
                     )
                 }
             }
@@ -94,7 +96,8 @@ fun SenseBridgeNavGraph(
     deafAssistViewModel: com.sensebridge.ui.deaf.DeafAssistViewModel,
     blindAssistViewModel: com.sensebridge.ui.blind.BlindAssistViewModel,
     ocrReaderViewModel: com.sensebridge.ui.ocr.OcrReaderViewModel,
-    communicationViewModel: com.sensebridge.ui.communication.CommunicationViewModel
+    communicationViewModel: com.sensebridge.ui.communication.CommunicationViewModel,
+    settingsViewModel: com.sensebridge.ui.settings.SettingsViewModel
 ) {
     val navController = rememberNavController()
 
@@ -129,6 +132,12 @@ fun SenseBridgeNavGraph(
         composable(NavRoute.Communication.route) {
             CommunicationScreen(
                 viewModel = communicationViewModel,
+                onBack = { navController.popBackStack() }
+            )
+        }
+        composable(NavRoute.Settings.route) {
+            com.sensebridge.ui.settings.SettingsScreen(
+                viewModel = settingsViewModel,
                 onBack = { navController.popBackStack() }
             )
         }

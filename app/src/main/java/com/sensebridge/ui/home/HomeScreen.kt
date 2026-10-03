@@ -153,6 +153,16 @@ fun HomeScreen(
                 )
             }
 
+            item {
+                BigActionButton(
+                    title = "⚙️ Cài đặt & Độ nhạy",
+                    subtitle = "Bật tắt rung, giọng nói & cảnh báo an toàn",
+                    icon = androidx.compose.material.icons.filled.Settings,
+                    iconTint = PrimaryBlue,
+                    onClick = { onNavigate(NavRoute.Settings.route) }
+                )
+            }
+
             // Testing / Simulation Controls
             item {
                 SimulationTestCard(
