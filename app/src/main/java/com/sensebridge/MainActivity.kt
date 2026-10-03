@@ -32,6 +32,7 @@ class MainActivity : ComponentActivity() {
 
     private val homeViewModel: HomeViewModel by viewModels()
     private val deafAssistViewModel: com.sensebridge.ui.deaf.DeafAssistViewModel by viewModels()
+    private val blindAssistViewModel: com.sensebridge.ui.blind.BlindAssistViewModel by viewModels()
 
     private val requestPermissionsLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -51,7 +52,8 @@ class MainActivity : ComponentActivity() {
                 ) {
                     SenseBridgeNavGraph(
                         homeViewModel = homeViewModel,
-                        deafAssistViewModel = deafAssistViewModel
+                        deafAssistViewModel = deafAssistViewModel,
+                        blindAssistViewModel = blindAssistViewModel
                     )
                 }
             }
@@ -85,7 +87,8 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun SenseBridgeNavGraph(
     homeViewModel: HomeViewModel,
-    deafAssistViewModel: com.sensebridge.ui.deaf.DeafAssistViewModel
+    deafAssistViewModel: com.sensebridge.ui.deaf.DeafAssistViewModel,
+    blindAssistViewModel: com.sensebridge.ui.blind.BlindAssistViewModel
 ) {
     val navController = rememberNavController()
 
@@ -106,7 +109,10 @@ fun SenseBridgeNavGraph(
             )
         }
         composable(NavRoute.BlindAssist.route) {
-            BlindAssistScreen(onBack = { navController.popBackStack() })
+            BlindAssistScreen(
+                viewModel = blindAssistViewModel,
+                onBack = { navController.popBackStack() }
+            )
         }
         composable(NavRoute.OcrReader.route) {
             OcrReaderScreen(onBack = { navController.popBackStack() })

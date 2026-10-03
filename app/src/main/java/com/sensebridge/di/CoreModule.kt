@@ -53,5 +53,24 @@ object CoreProvidesModule {
     fun provideDecibelEnergyGate(): DecibelEnergyGate {
         return DecibelEnergyGate()
     }
+
+    @Provides
+    @Singleton
+    fun provideFrameRateThrottle(): com.sensebridge.input.vision.FrameRateThrottle {
+        return com.sensebridge.input.vision.FrameRateThrottle(targetFps = 10)
+    }
+
+    @Provides
+    @Singleton
+    fun provideSpatialContextEngine(): com.sensebridge.input.vision.SpatialContextEngine {
+        return com.sensebridge.input.vision.SpatialContextEngine()
+    }
+
+    @Provides
+    @Singleton
+    fun provideSentenceGenerator(): com.sensebridge.input.vision.SentenceGenerator {
+        return com.sensebridge.input.vision.SentenceGenerator()
+    }
 }
+
 
