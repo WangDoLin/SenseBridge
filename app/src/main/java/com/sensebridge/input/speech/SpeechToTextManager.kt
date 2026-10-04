@@ -7,6 +7,7 @@ import android.speech.RecognitionListener
 import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
 import android.util.Log
+import com.sensebridge.input.sound.AudioRecorderManager
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -20,7 +21,8 @@ import javax.inject.Singleton
  */
 @Singleton
 class SpeechToTextManager @Inject constructor(
-    @ApplicationContext private val context: Context
+    @ApplicationContext private val context: Context,
+    private val audioRecorderManager: AudioRecorderManager
 ) : RecognitionListener {
 
     companion object {
@@ -75,12 +77,14 @@ class SpeechToTextManager @Inject constructor(
         }
 
         try {
+            audioRecorderManager.pauseForSpeechRecognition()
             recognizer.startListening(intent)
             _isListening.value = true
         } catch (e: Exception) {
             Log.e(TAG, "Error starting SpeechRecognizer: ${e.message}", e)
             _isListening.value = false
             _errorMessage.value = "Lỗi khởi động mic: ${e.message}"
+            audioRecorderManager.resumeAfterSpeechRecognition()
         }
     }
 
@@ -90,6 +94,8 @@ class SpeechToTextManager @Inject constructor(
             speechRecognizer?.stopListening()
         } catch (e: Exception) {
             Log.e(TAG, "Error stopping SpeechRecognizer", e)
+        } finally {
+            audioRecorderManager.resumeAfterSpeechRecognition()
         }
     }
 
@@ -111,6 +117,7 @@ class SpeechToTextManager @Inject constructor(
 
     override fun onError(error: Int) {
         _isListening.value = false
+        audioRecorderManager.resumeAfterSpeechRecognition()
         val message = when (error) {
             SpeechRecognizer.ERROR_NO_MATCH -> "Không nghe rõ câu nói. Vui lòng nói lại gần hơn."
             SpeechRecognizer.ERROR_NETWORK, SpeechRecognizer.ERROR_NETWORK_TIMEOUT -> "Lỗi kết nối mạng khi nhận dạng giọng nói."
@@ -123,6 +130,7 @@ class SpeechToTextManager @Inject constructor(
 
     override fun onResults(results: Bundle?) {
         _isListening.value = false
+        audioRecorderManager.resumeAfterSpeechRecognition()
         val matches = results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
         val bestText = matches?.firstOrNull()
 

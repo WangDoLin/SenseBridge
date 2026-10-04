@@ -76,6 +76,11 @@ class SentenceGenerator {
             label.contains("table") || label.contains("desk") -> "bàn"
             label.contains("door") -> "cửa"
             label.contains("stair") || label.contains("step") -> "bậc thang"
+            label.contains("home good") -> "vật dụng trong nhà"
+            label.contains("food") -> "thực phẩm"
+            label.contains("fashion good") -> "trang phục"
+            label.contains("plant") -> "cây cối"
+            label.contains("place") -> "khu vực xung quanh"
             else -> label
         }
     }

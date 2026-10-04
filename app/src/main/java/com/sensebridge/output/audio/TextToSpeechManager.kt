@@ -8,6 +8,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import android.speech.tts.UtteranceProgressListener
 import java.util.Locale
 import java.util.UUID
 import javax.inject.Inject
@@ -77,6 +78,34 @@ class TextToSpeechManager @Inject constructor(
         }
 
         val utteranceId = "utterance_${priority.name}_${UUID.randomUUID()}"
+        tts?.speak(text, queueMode, null, utteranceId)
+    }
+
+    /**
+     * Speaks an AAC communication phrase directly through the device loudspeaker.
+     * Bypasses privacy mute and automatically restores routing upon completion.
+     */
+    fun speakAac(text: String, priority: PriorityLevel) {
+        if (!_isReady.value || text.isBlank()) return
+
+        audioRouteManager.routeToSpeaker()
+
+        tts?.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
+            override fun onStart(utteranceId: String?) {}
+            override fun onDone(utteranceId: String?) {
+                audioRouteManager.clearSpeakerRoute()
+            }
+            @Deprecated("Deprecated in Java")
+            override fun onError(utteranceId: String?) {
+                audioRouteManager.clearSpeakerRoute()
+            }
+            override fun onError(utteranceId: String?, errorCode: Int) {
+                audioRouteManager.clearSpeakerRoute()
+            }
+        })
+
+        val queueMode = TextToSpeech.QUEUE_FLUSH
+        val utteranceId = "utterance_aac_${UUID.randomUUID()}"
         tts?.speak(text, queueMode, null, utteranceId)
     }
 

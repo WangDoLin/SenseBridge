@@ -78,6 +78,30 @@ class AudioRecorderManager @Inject constructor(
     private var currentHopPeakDb = Double.NEGATIVE_INFINITY
     private var previousHopPeakDb = Double.NEGATIVE_INFINITY
 
+    private var wasPausedForStt = false
+
+    /**
+     * Temporarily pauses audio recording so SpeechRecognizer can gain exclusive access to the mic.
+     */
+    fun pauseForSpeechRecognition() {
+        if (_isRecording.value) {
+            wasPausedForStt = true
+            stopListening()
+            Log.i(TAG, "Temporarily paused audio recording for STT mic capture.")
+        }
+    }
+
+    /**
+     * Resumes audio recording if it was previously paused for speech recognition.
+     */
+    fun resumeAfterSpeechRecognition() {
+        if (wasPausedForStt) {
+            wasPausedForStt = false
+            startListening()
+            Log.i(TAG, "Resumed audio recording after STT finished.")
+        }
+    }
+
     /**
      * Enables or disables monitoring while the app is in the background.
      */

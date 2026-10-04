@@ -110,6 +110,11 @@ class LocateGroundingEngine @Inject constructor(
             query in listOf("bàn", "table", "desk") && label in listOf("table", "desk") -> true
             query in listOf("cửa", "door", "lối ra", "exit") && label in listOf("door", "gate") -> true
             query in listOf("bậc thang", "cầu thang", "stairs", "step") && label in listOf("stairs", "steps") -> true
+            query in listOf("đồ", "vật dụng", "đồ dùng", "home good") && label in listOf("home good", "object") -> true
+            query in listOf("thức ăn", "đồ ăn", "món ăn", "food") && label in listOf("food") -> true
+            query in listOf("quần áo", "áo", "trang phục", "fashion good") && label in listOf("fashion good") -> true
+            query in listOf("cây", "cây cối", "hoa", "plant") && label in listOf("plant") -> true
+            query in listOf("địa điểm", "công trình", "nơi", "place") && label in listOf("place") -> true
             else -> false
         }
     }
@@ -125,6 +130,11 @@ class LocateGroundingEngine @Inject constructor(
             label.contains("table") -> "bàn"
             label.contains("door") -> "cửa"
             label.contains("stair") -> "bậc thang"
+            label.contains("home good") -> "vật dụng trong nhà"
+            label.contains("food") -> "thực phẩm"
+            label.contains("fashion good") -> "trang phục"
+            label.contains("plant") -> "cây cối"
+            label.contains("place") -> "khu vực xung quanh"
             else -> label
         }
     }

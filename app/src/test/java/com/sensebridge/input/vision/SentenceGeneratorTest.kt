@@ -84,4 +84,27 @@ class SentenceGeneratorTest {
         assertEquals(PriorityLevel.ATTENTION_P2, result.priority)
         assertTrue(result.spokenSentence.contains("cửa bên phải"))
     }
+
+    @Test
+    fun generateDescription_defaultMlKitCategories_translatedProperly() {
+        val context = SpatialObjectContext(
+            direction = SpatialDirection.CENTER,
+            isNear = false,
+            isFar = false,
+            normalizedX = 0.5f,
+            areaRatio = 0.15f
+        )
+
+        val homeGoodResult = generator.generateDescription("home good", context)
+        assertEquals("Vật dụng trong nhà", homeGoodResult.vietnameseTitle)
+        assertTrue(homeGoodResult.spokenSentence.contains("vật dụng trong nhà"))
+
+        val plantResult = generator.generateDescription("plant", context)
+        assertEquals("Cây cối", plantResult.vietnameseTitle)
+        assertTrue(plantResult.spokenSentence.contains("cây cối"))
+
+        val foodResult = generator.generateDescription("food", context)
+        assertEquals("Thực phẩm", foodResult.vietnameseTitle)
+        assertTrue(foodResult.spokenSentence.contains("thực phẩm"))
+    }
 }

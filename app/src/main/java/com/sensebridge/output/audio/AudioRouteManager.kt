@@ -58,37 +58,71 @@ class AudioRouteManager @Inject constructor(
     }
 
     /**
-     * Inspects attached audio devices and routes communication to Bluetooth headset if available.
+     * Inspects attached audio devices and routes communication to headset if available.
      */
     fun evaluateAudioDevices() {
         val manager = audioManager ?: return
         val devices = manager.getDevices(AudioManager.GET_DEVICES_OUTPUTS)
 
-        val bluetoothDevice = devices.firstOrNull { device ->
-            device.type == AudioDeviceInfo.TYPE_BLUETOOTH_A2DP ||
-            device.type == AudioDeviceInfo.TYPE_BLUETOOTH_SCO ||
-            (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && device.type == AudioDeviceInfo.TYPE_BLE_HEADSET)
-        }
+        val headsetDevice = devices.firstOrNull { isHeadsetDevice(it) }
 
-        if (bluetoothDevice != null) {
-            _isBluetoothConnected.value = true
-            _connectedDeviceName.value = bluetoothDevice.productName.toString()
+        if (headsetDevice != null) {
+            val isBt = headsetDevice.type == AudioDeviceInfo.TYPE_BLUETOOTH_A2DP ||
+                headsetDevice.type == AudioDeviceInfo.TYPE_BLUETOOTH_SCO ||
+                (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && headsetDevice.type == AudioDeviceInfo.TYPE_BLE_HEADSET)
+
+            _isBluetoothConnected.value = isBt
+            _connectedDeviceName.value = headsetDevice.productName.toString()
             _isMutedForPrivacy.value = false // Auto unmute when verified connected
-            routeToDevice(bluetoothDevice)
         } else {
             _isBluetoothConnected.value = false
             _connectedDeviceName.value = null
         }
     }
 
+    private fun isHeadsetDevice(device: AudioDeviceInfo): Boolean {
+        return device.type == AudioDeviceInfo.TYPE_BLUETOOTH_A2DP ||
+            device.type == AudioDeviceInfo.TYPE_BLUETOOTH_SCO ||
+            device.type == AudioDeviceInfo.TYPE_WIRED_HEADSET ||
+            device.type == AudioDeviceInfo.TYPE_WIRED_HEADPHONES ||
+            device.type == AudioDeviceInfo.TYPE_USB_HEADSET ||
+            (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && device.type == AudioDeviceInfo.TYPE_BLE_HEADSET)
+    }
+
     /**
-     * Routes audio communication to target device using modern Android 12+ API.
+     * Routes audio output to the device's built-in loudspeaker (used for AAC communication).
      */
-    private fun routeToDevice(deviceInfo: AudioDeviceInfo) {
+    fun routeToSpeaker(): Boolean {
+        val manager = audioManager ?: return false
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            val speakerDevice = manager.availableCommunicationDevices.firstOrNull {
+                it.type == AudioDeviceInfo.TYPE_BUILTIN_SPEAKER
+            }
+            if (speakerDevice != null) {
+                val success = manager.setCommunicationDevice(speakerDevice)
+                Log.d(TAG, "setCommunicationDevice(SPEAKER) result: $success")
+                success
+            } else {
+                false
+            }
+        } else {
+            @Suppress("DEPRECATION")
+            manager.isSpeakerphoneOn = true
+            true
+        }
+    }
+
+    /**
+     * Restores normal audio routing after loudspeaker communication completes.
+     */
+    fun clearSpeakerRoute() {
         val manager = audioManager ?: return
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            val success = manager.setCommunicationDevice(deviceInfo)
-            Log.d(TAG, "setCommunicationDevice(${deviceInfo.productName}) status: $success")
+            manager.clearCommunicationDevice()
+            Log.d(TAG, "Cleared speaker communication route.")
+        } else {
+            @Suppress("DEPRECATION")
+            manager.isSpeakerphoneOn = false
         }
     }
 

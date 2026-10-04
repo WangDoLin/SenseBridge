@@ -47,18 +47,23 @@ class ObjectDetectorEngine @Inject constructor(
         private const val MIN_STABLE_FRAMES = 2
     }
 
-    private val detector: ObjectDetector
+    private var detector: ObjectDetector? = null
     private val recentAnnounceTimes = ConcurrentHashMap<String, Long>()
     private val trackedFrameCounts = ConcurrentHashMap<String, Int>()
 
-    init {
+    private fun getOrCreateDetector(): ObjectDetector {
+        val current = detector
+        if (current != null) return current
+
         val options = ObjectDetectorOptions.Builder()
             .setDetectorMode(ObjectDetectorOptions.STREAM_MODE)
             .enableClassification()
             .enableMultipleObjects()
             .build()
 
-        detector = ObjectDetection.getClient(options)
+        return ObjectDetection.getClient(options).also {
+            detector = it
+        }
     }
 
     @OptIn(ExperimentalGetImage::class)
@@ -85,7 +90,7 @@ class ObjectDetectorEngine @Inject constructor(
         val frameHeight = if (isRotatedQuarter) imageProxy.width else imageProxy.height
         val now = System.currentTimeMillis()
 
-        detector.process(image)
+        getOrCreateDetector().process(image)
             .addOnSuccessListener { detectedObjects ->
                 processDetections(detectedObjects, frameWidth, frameHeight, now)
             }
@@ -221,7 +226,12 @@ class ObjectDetectorEngine @Inject constructor(
     )
 
     fun release() {
-        detector.close()
+        try {
+            detector?.close()
+        } catch (e: Exception) {
+            Log.w(TAG, "Error closing ObjectDetector: ${e.message}", e)
+        }
+        detector = null
         throttle.reset()
         recentAnnounceTimes.clear()
         trackedFrameCounts.clear()

@@ -69,7 +69,11 @@ class SensoryDispatcher @Inject constructor(
 
         // 2. Auditory Voice Synthesis
         if (currentConfig.enableVoice && event.priority.weight <= currentConfig.minPriorityToSpeak.weight) {
-            ttsManager.speak(event.spokenText, event.priority)
+            if (event.source == com.sensebridge.core.model.SensorySource.COMMUNICATION_INPUT) {
+                ttsManager.speakAac(event.spokenText, event.priority)
+            } else {
+                ttsManager.speak(event.spokenText, event.priority)
+            }
         }
 
         // 3. Visual Screen Cue
