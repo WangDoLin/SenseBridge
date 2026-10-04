@@ -18,8 +18,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Chat
 import androidx.compose.material.icons.filled.Campaign
-import androidx.compose.material.icons.filled.Chat
 import androidx.compose.material.icons.filled.Hearing
 import androidx.compose.material.icons.filled.NotificationsActive
 import androidx.compose.material.icons.filled.PowerSettingsNew
@@ -223,7 +223,7 @@ fun HomeScreen(
                 BigActionButton(
                     title = "🗣️ Communication",
                     subtitle = "Thẻ câu trợ giúp & dịch giọng nói hai chiều",
-                    icon = Icons.Default.Chat,
+                    icon = Icons.AutoMirrored.Filled.Chat,
                     iconTint = Color(0xFFA855F7),
                     onClick = { onNavigate(NavRoute.Communication.route) }
                 )

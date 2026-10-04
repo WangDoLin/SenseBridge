@@ -46,8 +46,27 @@ class CommunicationViewModel @Inject constructor(
     }
 
     fun addCustomPhrase(text: String, isEmergency: Boolean = false) {
+        if (text.isBlank()) return
         viewModelScope.launch {
             phraseRepository.addCustomPhrase(text, isEmergency)
+        }
+    }
+
+    fun speakCustomText(text: String, isEmergency: Boolean = false) {
+        if (text.isBlank()) return
+        val tempPhrase = SavedPhraseEntity(
+            vietnameseText = text.trim(),
+            category = if (isEmergency) "emergency" else "custom",
+            priority = if (isEmergency) com.sensebridge.core.model.PriorityLevel.WARNING_P1 else com.sensebridge.core.model.PriorityLevel.ATTENTION_P2
+        )
+        viewModelScope.launch {
+            phraseRepository.speakPhrase(tempPhrase)
+        }
+    }
+
+    fun deletePhrase(phrase: SavedPhraseEntity) {
+        viewModelScope.launch {
+            phraseRepository.deletePhrase(phrase)
         }
     }
 
