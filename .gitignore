@@ -1,15 +1,20 @@
 *.iml
 .gradle
 /local.properties
-/.idea/caches
-/.idea/libraries
-/.idea/modules.xml
-/.idea/workspace.xml
-/.idea/navEditor.xml
-/.idea/assetWizardSettings.xml
+.idea/
 .DS_Store
-/build
+build/
 /captures
 .externalNativeBuild
 .cxx
 local.properties
+
+# Kotlin compiler caches
+.kotlin/
+
+# Build artifacts must never be committed (release binaries go to GitHub Releases / Play)
+*.apk
+*.aab
+
+# Machine-specific developer scripts
+add_defender_exclusions.bat
