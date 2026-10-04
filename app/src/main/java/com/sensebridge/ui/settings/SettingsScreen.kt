@@ -176,7 +176,7 @@ fun SettingsScreen(
                             color = TextPrimary
                         )
                         Text(
-                            text = "Giá trị 55-60 dB: nhạy hơn (phòng yên tĩnh); 68-75 dB: lọc ồn tốt (ngoài đường, xe cộ). Tiếng động từ 78 dB trở lên sẽ luôn kích hoạt rung báo động.",
+                            text = "Mức âm lượng tương đối (dBFS): 50-58 dB nhạy hơn cho phòng yên tĩnh; 60-70 dB phù hợp môi trường ngoài phố. Âm thanh đột biến lớn (>84 dB) luôn kích hoạt rung cảnh báo tức thì.",
                             style = MaterialTheme.typography.bodySmall,
                             color = TextSecondary
                         )

@@ -7,8 +7,7 @@ import com.sensebridge.core.model.PriorityLevel
 import com.sensebridge.core.model.SenseEvent
 import com.sensebridge.core.model.SensorySource
 import com.sensebridge.core.model.SpatialDirection
-import com.sensebridge.core.service.SenseBridgeForegroundService
-import com.sensebridge.input.sound.AudioRecorderManager
+import com.sensebridge.core.monitoring.MonitoringCoordinator
 import com.sensebridge.output.audio.AudioRouteManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.StateFlow
@@ -17,16 +16,16 @@ import javax.inject.Inject
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val eventEngine: EventEngine,
-    private val audioRecorderManager: AudioRecorderManager,
+    private val monitoringCoordinator: MonitoringCoordinator,
     private val audioRouteManager: AudioRouteManager
 ) : ViewModel() {
 
     val isPaused: StateFlow<Boolean> = eventEngine.isPaused
     val recentEvents: StateFlow<List<SenseEvent>> = eventEngine.recentEvents
 
-    val isRecording: StateFlow<Boolean> = audioRecorderManager.isRecording
-    val currentDecibels: StateFlow<Double> = audioRecorderManager.currentDecibels
-    val isBackgroundEnabled: StateFlow<Boolean> = audioRecorderManager.isBackgroundEnabled
+    val isRecording: StateFlow<Boolean> = monitoringCoordinator.isRecording
+    val currentDecibels: StateFlow<Double> = monitoringCoordinator.currentDecibels
+    val isBackgroundEnabled: StateFlow<Boolean> = monitoringCoordinator.isBackgroundEnabled
 
     val isBluetoothConnected: StateFlow<Boolean> = audioRouteManager.isBluetoothConnected
     val connectedDeviceName: StateFlow<String?> = audioRouteManager.connectedDeviceName
@@ -36,17 +35,8 @@ class HomeViewModel @Inject constructor(
         eventEngine.togglePause()
     }
 
-    fun toggleBackgroundMonitoring(context: Context) {
-        val willEnable = !isRecording.value
-        if (willEnable) {
-            audioRecorderManager.setBackgroundMonitoring(true)
-            SenseBridgeForegroundService.start(context)
-            audioRecorderManager.startListening()
-        } else {
-            audioRecorderManager.setBackgroundMonitoring(false)
-            SenseBridgeForegroundService.stop(context)
-            audioRecorderManager.stopListening()
-        }
+    fun toggleBackgroundMonitoring(context: Context? = null) {
+        monitoringCoordinator.toggleMonitoring()
     }
 
     fun unmutePrivacy() {
