@@ -39,21 +39,26 @@ class SpeechToTextManager @Inject constructor(
     val errorMessage: StateFlow<String?> = _errorMessage.asStateFlow()
 
     init {
-        initRecognizer()
+        getOrCreateRecognizer()
     }
 
-    private fun initRecognizer() {
-        if (SpeechRecognizer.isRecognitionAvailable(context)) {
-            speechRecognizer = SpeechRecognizer.createSpeechRecognizer(context).apply {
+    private fun getOrCreateRecognizer(): SpeechRecognizer? {
+        val current = speechRecognizer
+        if (current != null) return current
+
+        return if (SpeechRecognizer.isRecognitionAvailable(context)) {
+            SpeechRecognizer.createSpeechRecognizer(context).apply {
                 setRecognitionListener(this@SpeechToTextManager)
+                speechRecognizer = this
             }
         } else {
             Log.w(TAG, "SpeechRecognizer is not available on this device.")
+            null
         }
     }
 
     fun startListening() {
-        val recognizer = speechRecognizer ?: run {
+        val recognizer = getOrCreateRecognizer() ?: run {
             _errorMessage.value = "Thiết bị không hỗ trợ nhận diện giọng nói."
             return
         }

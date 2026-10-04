@@ -33,9 +33,4 @@ class OcrReaderViewModel @Inject constructor(
     fun clearResult() {
         _lastReadText.value = null
     }
-
-    override fun onCleared() {
-        super.onCleared()
-        ocrEngine.release()
-    }
 }

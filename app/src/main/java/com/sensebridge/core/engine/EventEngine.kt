@@ -4,10 +4,12 @@ import android.util.Log
 import com.sensebridge.core.dispatcher.SensoryDispatcher
 import com.sensebridge.core.model.PriorityLevel
 import com.sensebridge.core.model.SenseEvent
+import com.sensebridge.core.model.SensorySource
 import com.sensebridge.output.audio.TextToSpeechManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -33,6 +35,7 @@ class EventEngine @Inject constructor(
     }
 
     private val engineScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
+    private val eventChannel = Channel<SenseEvent>(capacity = Channel.UNLIMITED)
 
     private val _isPaused = MutableStateFlow(false)
     val isPaused: StateFlow<Boolean> = _isPaused.asStateFlow()
@@ -42,25 +45,40 @@ class EventEngine @Inject constructor(
 
     private val eventHistory = CopyOnWriteArrayList<SenseEvent>()
 
+    init {
+        // Single serialized pipeline ensures strict chronological order and eliminates race conditions
+        engineScope.launch {
+            for (event in eventChannel) {
+                processIncomingEvent(event)
+            }
+        }
+    }
+
     /**
      * Ingests a new candidate sensory event from any source.
      */
     fun submitEvent(rawEvent: SenseEvent) {
-        if (_isPaused.value) {
+        val isUserAction = rawEvent.source == SensorySource.COMMUNICATION_INPUT ||
+            rawEvent.source == SensorySource.VISION_OCR
+
+        // User-initiated actions (AAC speech, OCR reading) must never be dropped even if sensing is paused
+        if (_isPaused.value && !isUserAction) {
             Log.d(TAG, "Event dropped: EventEngine is currently paused.")
             return
         }
 
-        engineScope.launch {
-            val fusedEvent = synthesizer.processOrFuse(rawEvent)
+        eventChannel.trySend(rawEvent)
+    }
 
-            when (debouncer.evaluate(fusedEvent)) {
-                DebounceDecision.NEW_EPISODE -> announceNewEpisode(fusedEvent)
-                // Ongoing horn/alarm: keep vibrating without restarting speech or spamming history
-                DebounceDecision.CONTINUATION -> dispatcher.dispatchHapticOnly(fusedEvent)
-                DebounceDecision.SUPPRESS ->
-                    Log.d(TAG, "Debounced event: ${fusedEvent.label} (${fusedEvent.source})")
-            }
+    private fun processIncomingEvent(rawEvent: SenseEvent) {
+        val fusedEvent = synthesizer.processOrFuse(rawEvent)
+
+        when (debouncer.evaluate(fusedEvent)) {
+            DebounceDecision.NEW_EPISODE -> announceNewEpisode(fusedEvent)
+            // Ongoing horn/alarm: keep vibrating without restarting speech or spamming history
+            DebounceDecision.CONTINUATION -> dispatcher.dispatchHapticOnly(fusedEvent)
+            DebounceDecision.SUPPRESS ->
+                Log.d(TAG, "Debounced event: ${fusedEvent.label} (${fusedEvent.source})")
         }
     }
 

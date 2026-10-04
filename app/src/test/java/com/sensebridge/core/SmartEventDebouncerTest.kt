@@ -123,4 +123,29 @@ class SmartEventDebouncerTest {
         assertEquals(DebounceDecision.NEW_EPISODE, debouncer.evaluate(horn))
         assertEquals(DebounceDecision.NEW_EPISODE, debouncer.evaluate(horn.copy(label = "siren", timestamp = 1200L)))
     }
+
+    @Test
+    fun userInitiatedAac_repeatedWithinWindow_neverSuppressed() {
+        val aac = doorbell.copy(
+            source = SensorySource.COMMUNICATION_INPUT,
+            label = "aac_phrase_1",
+            spokenText = "Tôi cần giúp đỡ khẩn cấp!"
+        )
+        // User pressing AAC card twice within suppression window must always fire
+        assertEquals(DebounceDecision.NEW_EPISODE, debouncer.evaluate(aac))
+        assertEquals(DebounceDecision.NEW_EPISODE, debouncer.evaluate(aac.copy(timestamp = 1500L)))
+        assertEquals(DebounceDecision.NEW_EPISODE, debouncer.evaluate(aac.copy(timestamp = 2000L)))
+    }
+
+    @Test
+    fun userInitiatedOcr_repeatedWithinWindow_neverSuppressed() {
+        val ocr = doorbell.copy(
+            source = SensorySource.VISION_OCR,
+            label = "ocr_text",
+            spokenText = "Cửa hàng tiện lợi"
+        )
+        // User reading OCR text twice within suppression window must always fire
+        assertEquals(DebounceDecision.NEW_EPISODE, debouncer.evaluate(ocr))
+        assertEquals(DebounceDecision.NEW_EPISODE, debouncer.evaluate(ocr.copy(timestamp = 1500L)))
+    }
 }

@@ -53,6 +53,6 @@ class CommunicationViewModel @Inject constructor(
 
     override fun onCleared() {
         super.onCleared()
-        speechToTextManager.release()
+        speechToTextManager.stopListening()
     }
 }

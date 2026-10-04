@@ -54,10 +54,14 @@ class SmartEventDebouncer(
      * Classifies [event] as a new episode, a continuation of an ongoing one, or a duplicate.
      */
     fun evaluate(event: SenseEvent): DebounceDecision {
+        if (isUserInitiated(event)) return DebounceDecision.NEW_EPISODE
         if (isUrgentAudio(event)) return evaluateEpisode(event)
         if (isRepeatedTrackedObject(event)) return DebounceDecision.SUPPRESS
         return evaluateWindow(event)
     }
+
+    private fun isUserInitiated(event: SenseEvent): Boolean =
+        event.source == SensorySource.COMMUNICATION_INPUT || event.source == SensorySource.VISION_OCR
 
     /**
      * Backwards-compatible boolean API: true only for events that deserve a full announcement.

@@ -148,10 +148,20 @@ class AudioRecorderManager @Inject constructor(
 
     private fun processAudioStream() {
         val chunk = ShortArray(READ_CHUNK_SAMPLES)
+        val record = audioRecord ?: return
         while (scope.isActive && _isRecording.value) {
-            val record = audioRecord ?: break
-            val readSize = record.read(chunk, 0, chunk.size)
-            if (readSize > 0) handleChunk(chunk, readSize)
+            val readSize = try {
+                record.read(chunk, 0, chunk.size)
+            } catch (e: Exception) {
+                Log.e(TAG, "Error reading from AudioRecord: ${e.message}", e)
+                break
+            }
+            if (readSize > 0 && _isRecording.value) {
+                handleChunk(chunk, readSize)
+            } else if (readSize < 0) {
+                Log.w(TAG, "AudioRecord read returned error code: $readSize")
+                break
+            }
         }
     }
 
@@ -226,18 +236,34 @@ class AudioRecorderManager @Inject constructor(
      * Stops capture, releases the microphone and the wake lock.
      */
     fun stopListening() {
+        if (!_isRecording.value && audioRecord == null) return
         _isRecording.value = false
-        recordingJob?.cancel()
+
+        val job = recordingJob
         recordingJob = null
+        val record = audioRecord
+        audioRecord = null
+
         try {
-            audioRecord?.stop()
-        } catch (e: IllegalStateException) {
-            Log.w(TAG, "AudioRecord was not recording when stopped", e)
+            record?.stop()
+        } catch (e: Exception) {
+            Log.w(TAG, "Error stopping AudioRecord: ${e.message}", e)
+        }
+        job?.cancel()
+
+        try {
+            record?.release()
+        } catch (e: Exception) {
+            Log.w(TAG, "Error releasing AudioRecord: ${e.message}", e)
         } finally {
-            audioRecord?.release()
-            audioRecord = null
             _currentDecibels.value = 0.0
-            if (wakeLock?.isHeld == true) wakeLock?.release()
+            if (wakeLock?.isHeld == true) {
+                try {
+                    wakeLock?.release()
+                } catch (e: Exception) {
+                    Log.w(TAG, "Error releasing WakeLock: ${e.message}", e)
+                }
+            }
             wakeLock = null
             Log.i(TAG, "Audio listening stopped.")
         }

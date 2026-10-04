@@ -16,6 +16,7 @@ import com.sensebridge.MainActivity
 import com.sensebridge.R
 import com.sensebridge.core.engine.EventEngine
 import com.sensebridge.core.model.PriorityLevel
+import com.sensebridge.core.model.SensorySource
 import com.sensebridge.input.sound.AudioRecorderManager
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
@@ -88,8 +89,12 @@ class SenseBridgeForegroundService : Service() {
             ACTION_START -> startForegroundMonitoring()
             ACTION_STOP -> stopForegroundMonitoring()
             ACTION_TOGGLE_PAUSE -> eventEngine.togglePause()
+            null -> {
+                Log.d(TAG, "Service restarted with null intent; stopping to respect Android 14 FGS restrictions.")
+                stopForegroundMonitoring()
+            }
         }
-        return START_STICKY
+        return START_NOT_STICKY
     }
 
     private fun startForegroundMonitoring() {
@@ -122,7 +127,10 @@ class SenseBridgeForegroundService : Service() {
         eventObserverJob = serviceScope.launch {
             eventEngine.recentEvents.collectLatest { events ->
                 val latest = events.firstOrNull() ?: return@collectLatest
-                if (latest.priority == PriorityLevel.CRITICAL_P0 || latest.priority == PriorityLevel.WARNING_P1) {
+                // Filter to acoustic classifier: user-initiated AAC phrases or OCR reading must never trigger alarm notification
+                if (latest.source == SensorySource.AUDIO_CLASSIFIER &&
+                    (latest.priority == PriorityLevel.CRITICAL_P0 || latest.priority == PriorityLevel.WARNING_P1)
+                ) {
                     postEmergencyNotification(
                         title = latest.displayTitle,
                         message = latest.spokenText,
@@ -177,11 +185,29 @@ class SenseBridgeForegroundService : Service() {
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )
 
+        val pauseIntent = Intent(this, SenseBridgeForegroundService::class.java).apply {
+            action = ACTION_TOGGLE_PAUSE
+        }
+        val pausePendingIntent = PendingIntent.getService(
+            this, 1, pauseIntent,
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+        )
+
+        val stopIntent = Intent(this, SenseBridgeForegroundService::class.java).apply {
+            action = ACTION_STOP
+        }
+        val stopPendingIntent = PendingIntent.getService(
+            this, 2, stopIntent,
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+        )
+
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle(title)
             .setContentText(text)
             .setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
             .setContentIntent(openAppPendingIntent)
+            .addAction(android.R.drawable.ic_media_pause, "Tạm dừng", pausePendingIntent)
+            .addAction(android.R.drawable.ic_menu_close_clear_cancel, "Dừng", stopPendingIntent)
             .setOngoing(true)
             .setPriority(NotificationCompat.PRIORITY_LOW)
             .setCategory(NotificationCompat.CATEGORY_SERVICE)
