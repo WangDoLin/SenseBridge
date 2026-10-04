@@ -1,6 +1,6 @@
 # SenseBridge - On-Device Multimodal Accessibility Platform
 
-SenseBridge là nền tảng hỗ trợ tiếp cận đa giác quan mã nguồn mở trên hệ điều hành Android. Ứng dụng biến thiết bị di động thành một bộ chuyển đổi tín hiệu giác quan thời gian thực (Signal Transformation Engine) hoạt động hoàn toàn trên thiết bị (On-Device), không cần phần cứng ngoại vi và không phụ thuộc vào kết nối mạng.
+SenseBridge là nền tảng đang trong giai đoạn alpha giúp hỗ trợ tiếp cận đa giác quan mã nguồn mở trên hệ điều hành Android. Ứng dụng biến thiết bị di động thành một bộ chuyển đổi tín hiệu giác quan thời gian thực (Signal Transformation Engine) hoạt động hoàn toàn trên thiết bị (On-Device), không cần phần cứng ngoại vi và không phụ thuộc vào kết nối mạng.
 
 Hệ thống chuyển đổi các tín hiệu môi trường khó tiếp nhận thành các dạng tín hiệu thay thế phù hợp với khả năng cảm nhận của người dùng.
 
