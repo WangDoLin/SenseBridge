@@ -28,7 +28,12 @@ class OcrEngine @Inject constructor(
         private const val MIN_TEXT_LENGTH = 2
     }
 
-    private val recognizer: TextRecognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
+    private var _recognizer: TextRecognizer? = null
+    private fun getRecognizer(): TextRecognizer {
+        return _recognizer ?: TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS).also {
+            _recognizer = it
+        }
+    }
 
     @OptIn(ExperimentalGetImage::class)
     @SuppressLint("UnsafeOptInUsageError")
@@ -45,7 +50,7 @@ class OcrEngine @Inject constructor(
 
         val image = InputImage.fromMediaImage(mediaImage, imageProxy.imageInfo.rotationDegrees)
 
-        recognizer.process(image)
+        getRecognizer().process(image)
             .addOnSuccessListener { visionText ->
                 val cleanedText = cleanRecognizedText(visionText.text)
                 if (cleanedText.isNotBlank()) {
@@ -84,6 +89,7 @@ class OcrEngine @Inject constructor(
     }
 
     fun release() {
-        recognizer.close()
+        _recognizer?.close()
+        _recognizer = null
     }
 }

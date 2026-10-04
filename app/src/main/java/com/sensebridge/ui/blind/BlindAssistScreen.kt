@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -21,8 +22,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Bluetooth
 import androidx.compose.material.icons.filled.BluetoothDisabled
+import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.GpsFixed
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Videocam
 import androidx.compose.material.icons.filled.VideocamOff
 import androidx.compose.material3.Button
@@ -30,9 +34,13 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -41,16 +49,18 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
-import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.sensebridge.core.model.PriorityLevel
 import com.sensebridge.core.model.SenseEvent
 import com.sensebridge.ui.theme.BgDark
@@ -76,8 +86,12 @@ fun BlindAssistScreen(
     val isCameraRunning by viewModel.isCameraRunning.collectAsState()
     val isBluetoothConnected by viewModel.isBluetoothConnected.collectAsState()
     val connectedDeviceName by viewModel.connectedDeviceName.collectAsState()
+    val activeSearchQuery by viewModel.activeSearchQuery.collectAsState()
+    val lastFoundTarget by viewModel.lastFoundTarget.collectAsState()
     val lastAnnouncedEvent by viewModel.lastAnnouncedEvent.collectAsState()
     val recentVisionEvents by viewModel.recentVisionEvents.collectAsState()
+
+    var searchQueryText by remember { mutableStateOf("") }
 
     DisposableEffect(lifecycleOwner) {
         viewModel.startVision(lifecycleOwner, previewView)
@@ -146,6 +160,98 @@ fun BlindAssistScreen(
                 }
             }
 
+            // NVIDIA LocateAnything Grounding Search Bar
+            item {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = if (activeSearchQuery != null) PrimaryBlue.copy(alpha = 0.15f) else SurfaceCard
+                    )
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Default.GpsFixed,
+                                contentDescription = null,
+                                tint = PrimaryBlue,
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = "🎯 ĐỊNH VỊ ĐỒ VẬT (NVIDIA LOCATE ARCHITECTURE)",
+                                style = MaterialTheme.typography.titleSmall,
+                                color = PrimaryBlue
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        OutlinedTextField(
+                            value = searchQueryText,
+                            onValueChange = {
+                                searchQueryText = it
+                                viewModel.setSearchQuery(it)
+                            },
+                            placeholder = { Text("Nhập đồ vật muốn tìm (ví dụ: người, cửa, ghế, xe)...", color = TextMuted) },
+                            singleLine = true,
+                            leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = TextSecondary) },
+                            trailingIcon = {
+                                if (searchQueryText.isNotBlank()) {
+                                    IconButton(onClick = {
+                                        searchQueryText = ""
+                                        viewModel.clearSearch()
+                                    }) {
+                                        Icon(Icons.Default.Clear, contentDescription = "Xóa", tint = TextMuted)
+                                    }
+                                }
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = PrimaryBlue,
+                                unfocusedBorderColor = TextMuted.copy(alpha = 0.3f),
+                                focusedTextColor = TextPrimary,
+                                unfocusedTextColor = TextPrimary
+                            )
+                        )
+
+                        Spacer(modifier = Modifier.height(10.dp))
+
+                        // Quick Chips
+                        LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            val chips = listOf("người", "cửa", "ghế", "bàn", "xe")
+                            item {
+                                FilterChip(
+                                    selected = activeSearchQuery == null,
+                                    onClick = {
+                                        searchQueryText = ""
+                                        viewModel.clearSearch()
+                                    },
+                                    label = { Text("Toàn cảnh (Chống spam)") },
+                                    colors = FilterChipDefaults.filterChipColors(
+                                        selectedContainerColor = P2AttentionGreen,
+                                        selectedLabelColor = BgDark
+                                    )
+                                )
+                            }
+                            items(chips) { chip ->
+                                FilterChip(
+                                    selected = activeSearchQuery == chip,
+                                    onClick = {
+                                        searchQueryText = chip
+                                        viewModel.setSearchQuery(chip)
+                                    },
+                                    label = { Text("Tìm $chip") },
+                                    colors = FilterChipDefaults.filterChipColors(
+                                        selectedContainerColor = PrimaryBlue,
+                                        selectedLabelColor = BgDark
+                                    )
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
             // Headset and Running Status Row
             item {
                 Card(
@@ -206,13 +312,13 @@ fun BlindAssistScreen(
                 ) {
                     Column(modifier = Modifier.padding(18.dp)) {
                         Text(
-                            text = "LỜI THOẠI VỪA PHÁT VÀO TAI NGHE:",
+                            text = "LỜI THOẠI VỪA PHÁT VÀO TAI NGHE (ĐÃ LỌC CHỐNG SPAM):",
                             style = MaterialTheme.typography.labelMedium,
                             color = PrimaryBlue
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            text = lastAnnouncedEvent?.spokenText ?: "Đang quét môi trường...",
+                            text = lastAnnouncedEvent?.spokenText ?: "Đang quét chướng ngại vật phía trước...",
                             style = MaterialTheme.typography.titleLarge,
                             color = TextPrimary
                         )
@@ -226,7 +332,7 @@ fun BlindAssistScreen(
                     onClick = { viewModel.toggleCamera(lifecycleOwner, previewView) },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(60.dp),
+                        .height(56.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = if (isCameraRunning) SurfaceCard else PrimaryBlue
                     )
@@ -246,7 +352,7 @@ fun BlindAssistScreen(
             // Recognized Visual Objects List
             item {
                 Text(
-                    text = "VẬT THỂ NHẬN DIỆN THỜI GIAN THỰC",
+                    text = "VẬT THỂ & CHƯỚNG NGẠI VẬT QUAN TRỌNG",
                     style = MaterialTheme.typography.labelLarge,
                     color = TextMuted,
                     modifier = Modifier.fillMaxWidth()
@@ -260,7 +366,7 @@ fun BlindAssistScreen(
                         colors = CardDefaults.cardColors(containerColor = SurfaceCard)
                     ) {
                         Text(
-                            text = "Hướng camera ra phía trước để bắt đầu nhận diện người, xe cộ, bàn ghế hoặc cầu thang.",
+                            text = "Hệ thống đã lọc bỏ các chi tiết thừa. Khi có người, xe cộ, bậc thang hoặc chướng ngại vật thực sự trên đường đi, cảnh báo giọng nói sẽ phát ngay.",
                             style = MaterialTheme.typography.bodyMedium,
                             color = TextSecondary,
                             modifier = Modifier.padding(16.dp)

@@ -8,6 +8,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
@@ -16,8 +17,10 @@ import androidx.core.content.ContextCompat
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.sensebridge.output.visual.AlertOverlayManager
 import com.sensebridge.ui.blind.BlindAssistScreen
 import com.sensebridge.ui.communication.CommunicationScreen
+import com.sensebridge.ui.components.AlertFlashOverlay
 import com.sensebridge.ui.deaf.DeafAssistScreen
 import com.sensebridge.ui.home.HomeScreen
 import com.sensebridge.ui.home.HomeViewModel
@@ -26,6 +29,7 @@ import com.sensebridge.ui.ocr.OcrReaderScreen
 import com.sensebridge.ui.theme.BgDark
 import com.sensebridge.ui.theme.SenseBridgeTheme
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -37,15 +41,24 @@ class MainActivity : ComponentActivity() {
     private val communicationViewModel: com.sensebridge.ui.communication.CommunicationViewModel by viewModels()
     private val settingsViewModel: com.sensebridge.ui.settings.SettingsViewModel by viewModels()
 
+    @Inject
+    lateinit var alertOverlayManager: AlertOverlayManager
+
     private val requestPermissionsLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
-    ) { _ ->
-        // Permissions granted or denied handled gracefully by individual managers
+    ) { grants ->
+        if (grants[Manifest.permission.RECORD_AUDIO] == true ||
+            ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
+            com.sensebridge.core.service.SenseBridgeForegroundService.start(this)
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         requestRequiredPermissions()
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
+            com.sensebridge.core.service.SenseBridgeForegroundService.start(this)
+        }
 
         setContent {
             SenseBridgeTheme {
@@ -53,14 +66,18 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = BgDark
                 ) {
-                    SenseBridgeNavGraph(
-                        homeViewModel = homeViewModel,
-                        deafAssistViewModel = deafAssistViewModel,
-                        blindAssistViewModel = blindAssistViewModel,
-                        ocrReaderViewModel = ocrReaderViewModel,
-                        communicationViewModel = communicationViewModel,
-                        settingsViewModel = settingsViewModel
-                    )
+                    Box(modifier = Modifier.fillMaxSize()) {
+                        SenseBridgeNavGraph(
+                            homeViewModel = homeViewModel,
+                            deafAssistViewModel = deafAssistViewModel,
+                            blindAssistViewModel = blindAssistViewModel,
+                            ocrReaderViewModel = ocrReaderViewModel,
+                            communicationViewModel = communicationViewModel,
+                            settingsViewModel = settingsViewModel
+                        )
+                        // Drawn last so it covers whichever screen is open
+                        AlertFlashOverlay(overlayManager = alertOverlayManager)
+                    }
                 }
             }
         }

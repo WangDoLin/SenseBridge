@@ -63,8 +63,9 @@ class TextToSpeechManager @Inject constructor(
     fun speak(text: String, priority: PriorityLevel) {
         if (!_isReady.value || text.isBlank()) return
 
-        // Respect privacy mute when headset is unexpectedly disconnected
-        if (audioRouteManager.isMutedForPrivacy.value) {
+        // Privacy mute hides everyday speech, but a blind user whose headset just died must still
+        // hear life-safety warnings through the loudspeaker (safety outweighs privacy).
+        if (audioRouteManager.isMutedForPrivacy.value && priority != PriorityLevel.CRITICAL_P0) {
             Log.d(TAG, "Suppressed TTS speech due to privacy mute: '$text'")
             return
         }

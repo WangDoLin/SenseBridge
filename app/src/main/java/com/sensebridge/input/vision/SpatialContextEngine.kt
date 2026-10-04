@@ -28,6 +28,13 @@ class SpatialContextEngine {
      * Determines spatial direction and proximity for a detected object bounding box.
      */
     fun analyze(box: Rect, frameWidth: Int, frameHeight: Int): SpatialObjectContext {
+        return analyze(box.left, box.top, box.right, box.bottom, frameWidth, frameHeight)
+    }
+
+    /**
+     * Determines spatial direction and proximity from bounding box coordinates.
+     */
+    fun analyze(left: Int, top: Int, right: Int, bottom: Int, frameWidth: Int, frameHeight: Int): SpatialObjectContext {
         if (frameWidth <= 0 || frameHeight <= 0) {
             return SpatialObjectContext(
                 direction = SpatialDirection.CENTER,
@@ -38,7 +45,7 @@ class SpatialContextEngine {
             )
         }
 
-        val centerX = (box.left + box.right) / 2.0f
+        val centerX = (left + right) / 2.0f
         val normX = (centerX / frameWidth).coerceIn(0f, 1f)
 
         val direction = when {
@@ -47,7 +54,9 @@ class SpatialContextEngine {
             else -> SpatialDirection.CENTER
         }
 
-        val boxArea = (box.width().coerceAtLeast(0) * box.height().coerceAtLeast(0)).toFloat()
+        val boxWidth = (right - left).coerceAtLeast(0)
+        val boxHeight = (bottom - top).coerceAtLeast(0)
+        val boxArea = (boxWidth * boxHeight).toFloat()
         val frameArea = (frameWidth * frameHeight).toFloat()
         val areaRatio = if (frameArea > 0) (boxArea / frameArea).coerceIn(0f, 1f) else 0f
 

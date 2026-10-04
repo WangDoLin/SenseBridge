@@ -1,7 +1,9 @@
 package com.sensebridge.output.haptic
 
 import android.content.Context
+import android.media.AudioAttributes
 import android.os.Build
+import android.os.VibrationAttributes
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.os.VibratorManager
@@ -21,6 +23,7 @@ class AndroidHapticManager @Inject constructor(
 
     companion object {
         private const val TAG = "AndroidHapticManager"
+        private const val NO_REPEAT = -1
     }
 
     private val vibrator: Vibrator? = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
@@ -35,18 +38,50 @@ class AndroidHapticManager @Inject constructor(
         get() = vibrator?.hasAmplitudeControl() == true
 
     override fun trigger(priority: PriorityLevel) {
-        if (vibrator == null || !vibrator.hasVibrator()) {
+        val effect = createVibrationEffect(priority) ?: return
+        play(effect, priority)
+    }
+
+    override fun triggerForLabel(label: String, priority: PriorityLevel) {
+        val timings = HapticSignatures.timingsFor(label) ?: return trigger(priority)
+        play(createSignatureEffect(timings, priority), priority)
+    }
+
+    private fun createSignatureEffect(timings: LongArray, priority: PriorityLevel): VibrationEffect {
+        if (!hasAmplitudeControl) return VibrationEffect.createWaveform(timings, NO_REPEAT)
+        val amplitude = if (priority.isUrgent) HapticSignatures.URGENT_AMPLITUDE else HapticSignatures.NORMAL_AMPLITUDE
+        return VibrationEffect.createWaveform(timings, HapticSignatures.amplitudesFor(timings, amplitude), NO_REPEAT)
+    }
+
+    private fun play(effect: VibrationEffect, priority: PriorityLevel) {
+        val activeVibrator = vibrator
+        if (activeVibrator == null || !activeVibrator.hasVibrator()) {
             Log.w(TAG, "No vibration hardware detected on this device.")
             return
         }
-
         try {
-            val effect = createVibrationEffect(priority)
-            if (effect != null) {
-                vibrator.vibrate(effect)
-            }
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to execute vibration for priority: $priority", e)
+            if (priority.isUrgent) vibrateAsAlarm(activeVibrator, effect) else activeVibrator.vibrate(effect)
+        } catch (e: SecurityException) {
+            Log.e(TAG, "Missing VIBRATE permission for priority: $priority", e)
+        } catch (e: IllegalArgumentException) {
+            Log.e(TAG, "Invalid vibration waveform for priority: $priority", e)
+        }
+    }
+
+    /**
+     * Default-usage vibrations can be silently dropped by Android 12+ while the app is in the
+     * background, the screen is off, or the ringer is silent. Danger alerts use ALARM usage.
+     */
+    private fun vibrateAsAlarm(vibrator: Vibrator, effect: VibrationEffect) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            vibrator.vibrate(effect, VibrationAttributes.createForUsage(VibrationAttributes.USAGE_ALARM))
+        } else {
+            val audioAttributes = AudioAttributes.Builder()
+                .setUsage(AudioAttributes.USAGE_ALARM)
+                .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                .build()
+            @Suppress("DEPRECATION")
+            vibrator.vibrate(effect, audioAttributes)
         }
     }
 

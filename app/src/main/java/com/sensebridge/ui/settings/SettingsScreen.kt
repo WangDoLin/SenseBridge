@@ -13,6 +13,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Security
+import androidx.compose.material.icons.filled.Vibration
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -35,6 +37,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.sensebridge.ui.theme.BgDark
 import com.sensebridge.ui.theme.P0DangerRed
@@ -52,7 +55,9 @@ fun SettingsScreen(
     viewModel: SettingsViewModel,
     onBack: () -> Unit
 ) {
+    val context = LocalContext.current
     val config by viewModel.config.collectAsState()
+    val isBackgroundEnabled by viewModel.isBackgroundEnabled.collectAsState()
     val thresholdDb by viewModel.thresholdDb.collectAsState()
 
     Scaffold(
@@ -83,6 +88,25 @@ fun SettingsScreen(
                 .padding(horizontal = 20.dp),
             verticalArrangement = Arrangement.spacedBy(18.dp)
         ) {
+            // Background Protection Section
+            item {
+                Text(
+                    text = "BẢO VỆ CHẠY NGẦM & ĐA TÁC VỤ",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = TextMuted,
+                    modifier = Modifier.padding(top = 8.dp)
+                )
+            }
+
+            item {
+                SettingSwitchCard(
+                    title = "🛡️ Chạy ngầm khi thoát ứng dụng",
+                    subtitle = "Duy trì quét âm thanh & rung ngay cả khi tắt màn hình hoặc chuyển sang ứng dụng khác",
+                    checked = isBackgroundEnabled,
+                    onCheckedChange = { viewModel.toggleBackgroundMonitoring(context) }
+                )
+            }
+
             item {
                 Text(
                     text = "KÊNH PHẢN HỒI GIÁC QUAN",
@@ -96,17 +120,33 @@ fun SettingsScreen(
             item {
                 SettingSwitchCard(
                     title = "Phản hồi xúc giác (Rung)",
-                    subtitle = "Rung mã hóa nhịp cho người khiếm thính",
+                    subtitle = "Rung điện thoại khi có còi xe, báo cháy & tiếng động lớn",
                     checked = config.enableHaptic,
                     onCheckedChange = { viewModel.setHapticEnabled(it) }
                 )
             }
 
+            // Test Vibration Button
+            item {
+                Button(
+                    onClick = { viewModel.testHapticVibration() },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(50.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue)
+                ) {
+                    Icon(imageVector = Icons.Default.Vibration, contentDescription = null)
+                    Spacer(modifier = Modifier.padding(4.dp))
+                    Text("THỬ RUNG ĐIỆN THOẠI NGAY", style = MaterialTheme.typography.labelLarge)
+                }
+            }
+
             // Voice Switch
             item {
                 SettingSwitchCard(
-                    title = "Phát giọng nói (TTS Bluetooth)",
-                    subtitle = "Đọc ngữ cảnh không gian vào tai nghe",
+                    title = "Phát giọng nói (TTS Bluetooth / Loa ngoài)",
+                    subtitle = "Đọc cảnh báo và ngữ cảnh không gian",
                     checked = config.enableVoice,
                     onCheckedChange = { viewModel.setVoiceEnabled(it) }
                 )
@@ -136,7 +176,7 @@ fun SettingsScreen(
                             color = TextPrimary
                         )
                         Text(
-                            text = "Giá trị thấp: nhạy hơn (phù hợp trong nhà); Giá trị cao: lọc ồn tốt hơn (phù hợp ngoài đường).",
+                            text = "Giá trị 55-60 dB: nhạy hơn (phòng yên tĩnh); 68-75 dB: lọc ồn tốt (ngoài đường, xe cộ). Tiếng động từ 78 dB trở lên sẽ luôn kích hoạt rung báo động.",
                             style = MaterialTheme.typography.bodySmall,
                             color = TextSecondary
                         )
@@ -155,7 +195,7 @@ fun SettingsScreen(
                 }
             }
 
-            // Safety Disclaimer Card (Important Requirement!)
+            // Safety Disclaimer Card
             item {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
@@ -196,7 +236,7 @@ fun SettingsScreen(
                     onClick = { viewModel.clearAllLogs() },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(56.dp),
+                        .height(52.dp),
                     shape = RoundedCornerShape(14.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = SurfaceCard)
                 ) {

@@ -2,6 +2,7 @@ package com.sensebridge.output.visual
 
 import com.sensebridge.core.model.PriorityLevel
 import com.sensebridge.core.model.SenseEvent
+import com.sensebridge.core.model.SensorySource
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -36,7 +37,9 @@ class AlertOverlayManager @Inject constructor() {
 
         _visualState.value = VisualAlertState(
             activeEvent = event,
-            isFlashing = event.priority.isUrgent,
+            // Flash is for people who can't hear; vision alerts serve blind users, for whom a
+            // full-screen touch-blocking overlay would only get in TalkBack's way.
+            isFlashing = event.priority.isUrgent && event.source == SensorySource.AUDIO_CLASSIFIER,
             alertColorHex = colorHex
         )
     }

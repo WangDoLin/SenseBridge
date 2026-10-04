@@ -52,26 +52,24 @@ class EventEngine @Inject constructor(
         }
 
         engineScope.launch {
-            // 1. Cross-modal fusion
             val fusedEvent = synthesizer.processOrFuse(rawEvent)
 
-            // 2. Debounce and frequency suppression
-            if (!debouncer.shouldProcess(fusedEvent)) {
-                Log.d(TAG, "Debounced event: ${fusedEvent.label} (${fusedEvent.source})")
-                return@launch
+            when (debouncer.evaluate(fusedEvent)) {
+                DebounceDecision.NEW_EPISODE -> announceNewEpisode(fusedEvent)
+                // Ongoing horn/alarm: keep vibrating without restarting speech or spamming history
+                DebounceDecision.CONTINUATION -> dispatcher.dispatchHapticOnly(fusedEvent)
+                DebounceDecision.SUPPRESS ->
+                    Log.d(TAG, "Debounced event: ${fusedEvent.label} (${fusedEvent.source})")
             }
-
-            // 3. Preemption logic for urgent alarms
-            if (fusedEvent.priority == PriorityLevel.CRITICAL_P0) {
-                ttsManager.stopImmediately()
-            }
-
-            // 4. Record in history
-            recordEvent(fusedEvent)
-
-            // 5. Dispatch to configured hardware output channels
-            dispatcher.dispatch(fusedEvent)
         }
+    }
+
+    private fun announceNewEpisode(event: SenseEvent) {
+        if (event.priority == PriorityLevel.CRITICAL_P0) {
+            ttsManager.stopImmediately()
+        }
+        recordEvent(event)
+        dispatcher.dispatch(event)
     }
 
     private fun recordEvent(event: SenseEvent) {

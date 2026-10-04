@@ -2,15 +2,21 @@ package com.sensebridge.input.sound
 
 import android.content.Context
 import android.util.Log
-import com.sensebridge.core.model.PriorityLevel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import org.tensorflow.lite.support.label.Category
 import org.tensorflow.lite.task.audio.classifier.AudioClassifier
 import java.io.IOException
 import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * TensorFlow Lite audio classifier for recognizing environmental emergency sounds.
+ * YAMNet (521 AudioSet classes) classifier.
+ *
+ * Accuracy design (see accuracy_review.md):
+ * - Uses ALL categories (YAMNet is multi-label). A horn often scores high while "Vehicle"
+ *   is top-1, so top-1-only logic missed it.
+ * - Maps labels by EXACT name through [SoundGroup] (whitelist). Fans, speech, music, engines…
+ *   belong to no group and therefore can never raise an alarm.
  */
 @Singleton
 class TFLiteAudioClassifier @Inject constructor(
@@ -20,7 +26,6 @@ class TFLiteAudioClassifier @Inject constructor(
     companion object {
         private const val TAG = "TFLiteAudioClassifier"
         private const val MODEL_FILE = "yamnet.tflite"
-        private const val MIN_CONFIDENCE_THRESHOLD = 0.65f
     }
 
     private var classifier: AudioClassifier? = null
@@ -35,10 +40,9 @@ class TFLiteAudioClassifier @Inject constructor(
         try {
             classifier = AudioClassifier.createFromFile(context, MODEL_FILE)
             isModelLoaded = true
-            Log.i(TAG, "Successfully loaded $MODEL_FILE")
+            Log.i(TAG, "Successfully loaded $MODEL_FILE into memory.")
         } catch (e: IOException) {
-            // Graceful fallback for development / test builds without downloaded weights
-            Log.w(TAG, "Model file $MODEL_FILE not found in assets. Running in standby mode.", e)
+            Log.w(TAG, "Model file $MODEL_FILE not accessible in assets.", e)
             isModelLoaded = false
         } catch (e: Exception) {
             Log.e(TAG, "Unexpected error loading audio model: ${e.message}", e)
@@ -46,101 +50,59 @@ class TFLiteAudioClassifier @Inject constructor(
         }
     }
 
-    override fun classify(audioSamples: FloatArray): AudioClassificationResult? {
+    /**
+     * Runs YAMNet on one ~0.975 s window and returns per-group scores (only emergency groups).
+     *
+     * @param audioSamples normalized mono PCM at 16 kHz.
+     * @return empty map when the model is unavailable or nothing relevant was heard.
+     */
+    override fun classifyGroups(audioSamples: FloatArray): Map<SoundGroup, Float> {
         val activeClassifier = classifier
-        if (activeClassifier != null && isModelLoaded) {
-            return classifyWithTfLite(activeClassifier, audioSamples)
-        }
-        return null
-    }
-
-    private fun classifyWithTfLite(
-        audioClassifier: AudioClassifier,
-        samples: FloatArray
-    ): AudioClassificationResult? {
-        try {
-            val audioRecord = audioClassifier.createAudioRecord()
-            val tensorAudio = audioClassifier.createInputTensorAudio()
-            tensorAudio.load(samples)
-
-            val output = audioClassifier.classify(tensorAudio)
-            val topCategory = output.firstOrNull()?.categories?.maxByOrNull { it.score }
-
-            if (topCategory != null && topCategory.score >= MIN_CONFIDENCE_THRESHOLD) {
-                return mapLabelToResult(topCategory.label, topCategory.score)
-            }
-        } catch (e: Exception) {
-            Log.e(TAG, "Inference execution failed: ${e.message}", e)
-        }
-        return null
+        if (activeClassifier == null || !isModelLoaded) return emptyMap()
+        val categories = runInference(activeClassifier, audioSamples)
+        return AudioLabelTaxonomy.scoreGroups(categories.map { it.label to it.score })
     }
 
     /**
-     * Maps raw AudioSet/YAMNet labels to Vietnamese titles, spoken text, and priorities.
+     * Single-window classification kept for the [SoundClassifier] contract: returns the most
+     * urgent group passing its threshold, without temporal confirmation.
      */
-    fun mapLabelToResult(rawLabel: String, confidence: Float): AudioClassificationResult? {
-        val lower = rawLabel.lowercase()
+    override fun classify(audioSamples: FloatArray): AudioClassificationResult? {
+        val passing = AudioLabelTaxonomy.passingGroups(classifyGroups(audioSamples))
+        val group = AudioLabelTaxonomy.mostUrgent(passing) ?: return null
+        return AudioLabelTaxonomy.toResult(group, passing.getValue(group))
+    }
 
-        return when {
-            lower.contains("horn") || lower.contains("honk") -> AudioClassificationResult(
-                label = "car_horn",
-                vietnameseTitle = "Còi xe",
-                spokenText = "Cảnh báo, có tiếng còi xe!",
-                confidence = confidence,
-                priority = PriorityLevel.CRITICAL_P0
-            )
+    /**
+     * Maps one raw YAMNet label to a result using exact matching.
+     * "French horn" or "Engine knocking" return null instead of car horn / door knock.
+     */
+    fun mapLabelToResult(rawLabel: String, confidence: Float): AudioClassificationResult? =
+        AudioLabelTaxonomy.mapLabel(rawLabel, confidence)
 
-            lower.contains("siren") || lower.contains("emergency vehicle") -> AudioClassificationResult(
-                label = "siren",
-                vietnameseTitle = "Còi xe cấp cứu / Cảnh sát",
-                spokenText = "Cảnh báo, có còi xe ưu tiên đến gần!",
-                confidence = confidence,
-                priority = PriorityLevel.CRITICAL_P0
-            )
-
-            lower.contains("fire alarm") || lower.contains("smoke detector") -> AudioClassificationResult(
-                label = "fire_alarm",
-                vietnameseTitle = "Báo cháy",
-                spokenText = "Nguy hiểm, chuông báo cháy đang reo!",
-                confidence = confidence,
-                priority = PriorityLevel.CRITICAL_P0
-            )
-
-            lower.contains("doorbell") || lower.contains("ding-dong") || lower.contains("knock") -> AudioClassificationResult(
-                label = "doorbell",
-                vietnameseTitle = "Chuông cửa / Gõ cửa",
-                spokenText = "Có tiếng chuông cửa hoặc gõ cửa.",
-                confidence = confidence,
-                priority = PriorityLevel.ATTENTION_P2
-            )
-
-            lower.contains("baby") || lower.contains("crying") || lower.contains("infant cry") -> AudioClassificationResult(
-                label = "baby_cry",
-                vietnameseTitle = "Tiếng em bé khóc",
-                spokenText = "Có tiếng em bé đang khóc.",
-                confidence = confidence,
-                priority = PriorityLevel.WARNING_P1
-            )
-
-            lower.contains("bark") || lower.contains("dog") -> AudioClassificationResult(
-                label = "dog_bark",
-                vietnameseTitle = "Tiếng chó sủa",
-                spokenText = "Có tiếng chó sủa gần đây.",
-                confidence = confidence,
-                priority = PriorityLevel.INFO_P3
-            )
-
-            else -> null // Ignore non-emergency environmental noise
+    private fun runInference(audioClassifier: AudioClassifier, samples: FloatArray): List<Category> {
+        return try {
+            val tensorAudio = audioClassifier.createInputTensorAudio()
+            tensorAudio.load(samples)
+            audioClassifier.classify(tensorAudio).firstOrNull()?.categories.orEmpty()
+        } catch (e: IllegalArgumentException) {
+            Log.e(TAG, "Invalid audio buffer for inference: ${e.message}", e)
+            emptyList()
+        } catch (e: RuntimeException) {
+            // Native TFLite failures must not kill the background recording coroutine
+            Log.e(TAG, "Inference execution failed: ${e.message}", e)
+            emptyList()
         }
     }
 
     override fun release() {
         try {
-            // Task Library AudioClassifier cleanup
+            classifier?.close()
+        } catch (e: IllegalStateException) {
+            Log.e(TAG, "Error releasing audio classifier resources", e)
+        } finally {
             classifier = null
             isModelLoaded = false
-        } catch (e: Exception) {
-            Log.e(TAG, "Error releasing audio classifier resources", e)
         }
     }
 }

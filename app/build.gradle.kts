@@ -51,6 +51,10 @@ android {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
+
+    testOptions {
+        unitTests.isReturnDefaultValues = true
+    }
 }
 
 dependencies {
@@ -73,7 +77,7 @@ dependencies {
     implementation(libs.androidx.camera.view)
 
     // ML Kit
-    implementation(libs.google.mlkit.object.detection)
+    implementation(libs.google.mlkit.`object`.detection)
     implementation(libs.google.mlkit.text.recognition)
 
     // TensorFlow Lite

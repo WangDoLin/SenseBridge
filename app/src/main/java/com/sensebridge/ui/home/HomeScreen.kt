@@ -22,14 +22,21 @@ import androidx.compose.material.icons.filled.Campaign
 import androidx.compose.material.icons.filled.Chat
 import androidx.compose.material.icons.filled.Hearing
 import androidx.compose.material.icons.filled.NotificationsActive
+import androidx.compose.material.icons.filled.PowerSettingsNew
+import androidx.compose.material.icons.filled.Security
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.TextFields
 import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.Vibration
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -37,6 +44,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.sensebridge.core.model.PriorityLevel
 import com.sensebridge.core.model.SenseEvent
@@ -58,7 +66,10 @@ fun HomeScreen(
     viewModel: HomeViewModel,
     onNavigate: (String) -> Unit
 ) {
+    val context = LocalContext.current
     val isPaused by viewModel.isPaused.collectAsState()
+    val isRecording by viewModel.isRecording.collectAsState()
+    val currentDecibels by viewModel.currentDecibels.collectAsState()
     val isBluetoothConnected by viewModel.isBluetoothConnected.collectAsState()
     val connectedDeviceName by viewModel.connectedDeviceName.collectAsState()
     val isMutedForPrivacy by viewModel.isMutedForPrivacy.collectAsState()
@@ -84,7 +95,7 @@ fun HomeScreen(
                         color = PrimaryBlue
                     )
                     Text(
-                        text = "Trợ lý giác quan nhân tạo",
+                        text = "Trợ lý giác quan nhân tạo đa tác vụ",
                         style = MaterialTheme.typography.bodyLarge,
                         color = TextSecondary
                     )
@@ -103,10 +114,75 @@ fun HomeScreen(
                 )
             }
 
+            // Continuous Background Awareness Status Card
+            item {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = if (isRecording) Color(0xFF0F2B1D) else SurfaceCard
+                    )
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(42.dp)
+                                    .background(
+                                        if (isRecording) P2AttentionGreen.copy(alpha = 0.2f) else TextMuted.copy(alpha = 0.2f),
+                                        CircleShape
+                                    ),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Security,
+                                    contentDescription = null,
+                                    tint = if (isRecording) P2AttentionGreen else TextMuted,
+                                    modifier = Modifier.size(24.dp)
+                                )
+                            }
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Column {
+                                Text(
+                                    text = if (isRecording) "Bảo vệ ngầm đang BẬT" else "Bảo vệ ngầm đang TẮT",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    color = if (isRecording) P2AttentionGreen else TextPrimary
+                                )
+                                Text(
+                                    text = if (isRecording) "Quét liên tục (${currentDecibels.toInt()} dB) • Rung khi có tiếng động lớn" else "Nhấn bật để quét âm thanh cả khi thoát app",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = TextSecondary
+                                )
+                            }
+                        }
+
+                        Switch(
+                            checked = isRecording,
+                            onCheckedChange = { viewModel.toggleBackgroundMonitoring(context) },
+                            colors = SwitchDefaults.colors(
+                                checkedThumbColor = BgDark,
+                                checkedTrackColor = P2AttentionGreen,
+                                uncheckedThumbColor = TextMuted,
+                                uncheckedTrackColor = SurfaceCard
+                            )
+                        )
+                    }
+                }
+            }
+
             // Primary Accessibility Modes
             item {
                 Text(
-                    text = "CHẾ ĐỘ TRỢ NĂNG",
+                    text = "CHẾ ĐỘ TRỢ NĂNG (ĐA NHIỆM)",
                     style = MaterialTheme.typography.labelLarge,
                     color = TextMuted,
                     modifier = Modifier.padding(top = 8.dp)
@@ -116,7 +192,7 @@ fun HomeScreen(
             item {
                 BigActionButton(
                     title = "👂 Sound Assist",
-                    subtitle = "Nhận diện còi xe, báo cháy & rung phản hồi",
+                    subtitle = "Radar âm thanh, còi xe, báo cháy & rung phản hồi",
                     icon = Icons.Default.Hearing,
                     iconTint = P1WarningAmber,
                     onClick = { onNavigate(NavRoute.DeafAssist.route) }
@@ -126,7 +202,7 @@ fun HomeScreen(
             item {
                 BigActionButton(
                     title = "👁️ Vision Assist",
-                    subtitle = "Quét vật thể, định vị & đọc qua tai nghe",
+                    subtitle = "Quét vật thể, định vị không gian & đọc qua tai nghe",
                     icon = Icons.Default.Visibility,
                     iconTint = PrimaryBlue,
                     onClick = { onNavigate(NavRoute.BlindAssist.route) }
@@ -136,7 +212,7 @@ fun HomeScreen(
             item {
                 BigActionButton(
                     title = "📖 OCR Reader",
-                    subtitle = "Hướng camera đọc biển hiệu & văn bản",
+                    subtitle = "Hướng camera đọc biển hiệu & văn bản tức thì",
                     icon = Icons.Default.TextFields,
                     iconTint = P2AttentionGreen,
                     onClick = { onNavigate(NavRoute.OcrReader.route) }
@@ -156,8 +232,8 @@ fun HomeScreen(
             item {
                 BigActionButton(
                     title = "⚙️ Cài đặt & Độ nhạy",
-                    subtitle = "Bật tắt rung, giọng nói & cảnh báo an toàn",
-                    icon = androidx.compose.material.icons.filled.Settings,
+                    subtitle = "Bật tắt rung, độ nhạy Decibel & chế độ chạy ngầm",
+                    icon = Icons.Default.Settings,
                     iconTint = PrimaryBlue,
                     onClick = { onNavigate(NavRoute.Settings.route) }
                 )
@@ -166,6 +242,7 @@ fun HomeScreen(
             // Testing / Simulation Controls
             item {
                 SimulationTestCard(
+                    onSimulateLoudNoise = { viewModel.simulateLoudNoiseP0() },
                     onSimulateHorn = { viewModel.simulateHornP0() },
                     onSimulateFireAlarm = { viewModel.simulateFireAlarmP0() },
                     onSimulatePerson = { viewModel.simulatePersonLeftP2() },
@@ -205,6 +282,7 @@ fun HomeScreen(
 
 @Composable
 private fun SimulationTestCard(
+    onSimulateLoudNoise: () -> Unit,
     onSimulateHorn: () -> Unit,
     onSimulateFireAlarm: () -> Unit,
     onSimulatePerson: () -> Unit,
@@ -219,16 +297,36 @@ private fun SimulationTestCard(
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    imageVector = Icons.Default.Vibration,
+                    contentDescription = null,
+                    tint = PrimaryBlue,
+                    modifier = Modifier.size(20.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = "⚡ THỬ NGHIỆM PHẢN HỒI RUNG ĐIỆN THOẠI",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = PrimaryBlue
+                )
+            }
             Text(
-                text = "⚡ KIỂM THỬ TÍN HIỆU (GIAI ĐOẠN 1)",
-                style = MaterialTheme.typography.titleMedium,
-                color = PrimaryBlue
-            )
-            Text(
-                text = "Nhấn để kiểm tra phản hồi rung và giọng nói Bluetooth.",
+                text = "Nhấn nút để kiểm tra mô tơ rung và cảnh báo tức thì:",
                 style = MaterialTheme.typography.bodySmall,
                 color = TextSecondary
             )
+
+            // Huge Loud Noise Test Button
+            Button(
+                onClick = onSimulateLoudNoise,
+                colors = ButtonDefaults.buttonColors(containerColor = P0DangerRed),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(48.dp)
+            ) {
+                Text("⚠️ THỬ TIẾNG ĐỘNG LỚN (88 dB - RUNG MẠNH SOS)", style = MaterialTheme.typography.labelLarge)
+            }
 
             Row(
                 modifier = Modifier.fillMaxWidth(),

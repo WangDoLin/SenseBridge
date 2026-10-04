@@ -12,6 +12,12 @@ interface HapticManager {
     fun trigger(priority: PriorityLevel)
 
     /**
+     * Vibrates with the rhythm assigned to [label] (see [HapticSignatures]), falling back to the
+     * generic [priority] pattern when the label has no dedicated rhythm.
+     */
+    fun triggerForLabel(label: String, priority: PriorityLevel) = trigger(priority)
+
+    /**
      * Immediately stops any ongoing vibration.
      */
     fun cancel()

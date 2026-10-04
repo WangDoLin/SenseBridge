@@ -23,6 +23,16 @@ interface SoundClassifier {
     fun classify(audioSamples: FloatArray): AudioClassificationResult?
 
     /**
+     * Returns per-group scores for one window (multi-label). The default implementation wraps
+     * [classify] so simpler classifiers keep working; YAMNet overrides it with all categories.
+     */
+    fun classifyGroups(audioSamples: FloatArray): Map<SoundGroup, Float> {
+        val result = classify(audioSamples) ?: return emptyMap()
+        val group = SoundGroup.forKey(result.label) ?: return emptyMap()
+        return mapOf(group to result.confidence)
+    }
+
+    /**
      * Releases native inference sessions and buffers.
      */
     fun release()

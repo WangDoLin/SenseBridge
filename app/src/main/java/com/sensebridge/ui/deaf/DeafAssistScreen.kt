@@ -24,6 +24,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Hearing
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.MicOff
+import androidx.compose.material.icons.filled.Security
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -36,6 +37,8 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -49,6 +52,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.sensebridge.core.model.PriorityLevel
 import com.sensebridge.core.model.SenseEvent
@@ -68,15 +72,20 @@ fun DeafAssistScreen(
     viewModel: DeafAssistViewModel,
     onBack: () -> Unit
 ) {
+    val context = LocalContext.current
     val isListening by viewModel.isListening.collectAsState()
+    val isBackgroundEnabled by viewModel.isBackgroundEnabled.collectAsState()
     val currentDb by viewModel.currentDecibels.collectAsState()
     val recentAudioEvents by viewModel.recentAudioEvents.collectAsState()
     var isHighSensitivity by remember { mutableStateOf(false) }
 
     DisposableEffect(Unit) {
-        viewModel.startListening()
+        viewModel.startListening(context)
         onDispose {
-            viewModel.stopListening()
+            // Only stop if background awareness is explicitly turned off
+            if (!isBackgroundEnabled) {
+                viewModel.stopListening(context)
+            }
         }
     }
 
@@ -101,7 +110,7 @@ fun DeafAssistScreen(
         containerColor = BgDark,
         topBar = {
             TopAppBar(
-                title = { Text("Sound Assist (Trợ thính)") },
+                title = { Text("Sound Assist (Trợ thính & Báo động)") },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(
@@ -155,12 +164,12 @@ fun DeafAssistScreen(
             item {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
-                        text = if (isListening) "ĐANG THEO DÕI ÂM THANH" else "ĐÃ DỪNG LẮNG NGHE",
+                        text = if (isListening) "ĐANG THEO DÕI ÂM THANH LIÊN TỤC" else "ĐÃ DỪNG LẮNG NGHE",
                         style = MaterialTheme.typography.titleMedium,
                         color = if (isListening) P2AttentionGreen else P1WarningAmber
                     )
                     Text(
-                        text = "Âm lượng hiện tại: ${currentDb.toInt()} dB (Ngưỡng kích hoạt: ${viewModel.thresholdDb.toInt()} dB)",
+                        text = "Âm lượng hiện tại: ${currentDb.toInt()} dB (Ngưỡng cảnh báo: ${viewModel.thresholdDb.toInt()} dB)",
                         style = MaterialTheme.typography.bodySmall,
                         color = TextSecondary
                     )
@@ -173,6 +182,56 @@ fun DeafAssistScreen(
                         color = radarColor,
                         trackColor = SurfaceCard
                     )
+                }
+            }
+
+            // Background Monitoring Toggle Card
+            item {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(14.dp),
+                    colors = CardDefaults.cardColors(containerColor = SurfaceCard)
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(14.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Security,
+                                contentDescription = null,
+                                tint = if (isBackgroundEnabled) P2AttentionGreen else TextMuted
+                            )
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Column {
+                                Text(
+                                    text = "Quét ngầm khi thoát app",
+                                    style = MaterialTheme.typography.titleSmall,
+                                    color = TextPrimary
+                                )
+                                Text(
+                                    text = "Vẫn quét & rung khi khóa máy hoặc chuyển app",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = TextSecondary
+                                )
+                            }
+                        }
+
+                        Switch(
+                            checked = isBackgroundEnabled,
+                            onCheckedChange = { viewModel.toggleBackgroundMonitoring(context) },
+                            colors = SwitchDefaults.colors(
+                                checkedThumbColor = BgDark,
+                                checkedTrackColor = P2AttentionGreen
+                            )
+                        )
+                    }
                 }
             }
 
@@ -214,11 +273,11 @@ fun DeafAssistScreen(
             item {
                 Button(
                     onClick = {
-                        if (isListening) viewModel.stopListening() else viewModel.startListening()
+                        if (isListening) viewModel.stopListening(context) else viewModel.startListening(context)
                     },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(60.dp),
+                        .height(56.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = if (isListening) SurfaceCard else P2AttentionGreen
                     )
@@ -229,7 +288,7 @@ fun DeafAssistScreen(
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = if (isListening) "TẠM DỪNG MIC" else "BẮT ĐẦU LẮNG NGHE",
+                        text = if (isListening) "TẠM DỪNG MIC" else "BẮT ĐẦU LẮNG NGHE NGAY",
                         style = MaterialTheme.typography.titleMedium
                     )
                 }
@@ -252,7 +311,7 @@ fun DeafAssistScreen(
                         colors = CardDefaults.cardColors(containerColor = SurfaceCard)
                     ) {
                         Text(
-                            text = "Chưa phát hiện âm thanh bất thường. Khi có tiếng còi xe hoặc chuông báo, cảnh báo sẽ xuất hiện tại đây kèm rung mạnh.",
+                            text = "Chưa phát hiện âm thanh bất thường. Khi có tiếng còi xe, báo cháy hoặc tiếng động lớn, điện thoại sẽ lập tức rung mạnh và gửi thông báo!",
                             style = MaterialTheme.typography.bodyMedium,
                             color = TextSecondary,
                             modifier = Modifier.padding(16.dp)

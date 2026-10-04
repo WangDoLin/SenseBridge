@@ -20,6 +20,11 @@ class SensoryDispatcher @Inject constructor(
     private val ttsManager: TextToSpeechManager,
     private val visualManager: AlertOverlayManager
 ) {
+    companion object {
+        /** Cross-modal fused horn events ("car_horn_fused") reuse the horn vibration rhythm. */
+        private const val FUSED_SUFFIX = "_fused"
+    }
+
     private val _config = MutableStateFlow(OutputConfiguration())
     val config: StateFlow<OutputConfiguration> = _config.asStateFlow()
 
@@ -35,9 +40,7 @@ class SensoryDispatcher @Inject constructor(
         val currentConfig = _config.value
 
         // 1. Haptic Feedback (Immediate hardware impulse)
-        if (currentConfig.enableHaptic && event.priority.weight <= currentConfig.minPriorityToVibrate.weight) {
-            hapticManager.trigger(event.priority)
-        }
+        dispatchHapticOnly(event)
 
         // 2. Auditory Voice Synthesis
         if (currentConfig.enableVoice && event.priority.weight <= currentConfig.minPriorityToSpeak.weight) {
@@ -47,6 +50,17 @@ class SensoryDispatcher @Inject constructor(
         // 3. Visual Screen Cue
         if (currentConfig.enableVisual) {
             visualManager.displayAlert(event)
+        }
+    }
+
+    /**
+     * Vibrates for [event] without speaking or showing a new visual alert.
+     * Used for continuations of an ongoing horn/alarm episode.
+     */
+    fun dispatchHapticOnly(event: SenseEvent) {
+        val currentConfig = _config.value
+        if (currentConfig.enableHaptic && event.priority.weight <= currentConfig.minPriorityToVibrate.weight) {
+            hapticManager.triggerForLabel(event.label.removeSuffix(FUSED_SUFFIX), event.priority)
         }
     }
 }

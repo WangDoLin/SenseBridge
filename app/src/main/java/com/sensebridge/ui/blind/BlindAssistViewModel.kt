@@ -8,6 +8,8 @@ import com.sensebridge.core.engine.EventEngine
 import com.sensebridge.core.model.SenseEvent
 import com.sensebridge.core.model.SensorySource
 import com.sensebridge.input.vision.CameraManager
+import com.sensebridge.input.vision.GroundingTarget
+import com.sensebridge.input.vision.LocateGroundingEngine
 import com.sensebridge.output.audio.AudioRouteManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -22,11 +24,15 @@ import javax.inject.Inject
 class BlindAssistViewModel @Inject constructor(
     private val cameraManager: CameraManager,
     private val eventEngine: EventEngine,
+    private val locateEngine: LocateGroundingEngine,
     private val audioRouteManager: AudioRouteManager
 ) : ViewModel() {
 
     private val _isCameraRunning = MutableStateFlow(false)
     val isCameraRunning: StateFlow<Boolean> = _isCameraRunning.asStateFlow()
+
+    val activeSearchQuery: StateFlow<String?> = locateEngine.activeSearchQuery
+    val lastFoundTarget: StateFlow<GroundingTarget?> = locateEngine.lastFoundTarget
 
     val isBluetoothConnected: StateFlow<Boolean> = audioRouteManager.isBluetoothConnected
     val connectedDeviceName: StateFlow<String?> = audioRouteManager.connectedDeviceName
@@ -55,6 +61,14 @@ class BlindAssistViewModel @Inject constructor(
         } else {
             startVision(lifecycleOwner, previewView)
         }
+    }
+
+    fun setSearchQuery(query: String?) {
+        locateEngine.setSearchQuery(query)
+    }
+
+    fun clearSearch() {
+        locateEngine.clearSearch()
     }
 
     override fun onCleared() {
