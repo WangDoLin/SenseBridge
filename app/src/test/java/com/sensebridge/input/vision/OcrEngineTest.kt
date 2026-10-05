@@ -29,7 +29,6 @@ class OcrEngineTest {
 
         val cleaned = ocrEngine.cleanRecognizedText(rawSign)
 
-        // Single dot or single digit artifacts should be discarded
         assertTrue(cleaned.contains("PHÒNG KHÁM SỐ 3"))
         assertTrue(cleaned.contains("KHOA TAI MŨI HỌNG"))
         assertTrue(cleaned.contains("TẦNG 2"))

@@ -2,11 +2,16 @@ package com.sensebridge.ui.ocr
 
 import android.content.Context
 import android.util.Log
+import android.util.Size
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.ImageProxy
 import androidx.camera.core.Preview
+import androidx.camera.core.UseCaseGroup
+import androidx.camera.core.resolutionselector.AspectRatioStrategy
+import androidx.camera.core.resolutionselector.ResolutionSelector
+import androidx.camera.core.resolutionselector.ResolutionStrategy
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.core.content.ContextCompat
@@ -19,6 +24,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import java.util.concurrent.Executors
+import java.util.concurrent.Future
 import javax.inject.Inject
 
 @HiltViewModel
@@ -29,6 +35,8 @@ class OcrReaderViewModel @Inject constructor(
 
     companion object {
         private const val TAG = "OcrReaderViewModel"
+        private const val OCR_TARGET_WIDTH = 2560
+        private const val OCR_TARGET_HEIGHT = 1920
     }
 
     private val cameraExecutor = Executors.newSingleThreadExecutor()
@@ -47,28 +55,55 @@ class OcrReaderViewModel @Inject constructor(
     fun bindCamera(lifecycleOwner: LifecycleOwner, previewView: PreviewView) {
         val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
         cameraProviderFuture.addListener({
-            try {
-                cameraProvider = cameraProviderFuture.get()
-                val provider = cameraProvider ?: return@addListener
-                provider.unbindAll()
-
-                val preview = Preview.Builder().build().also {
-                    it.setSurfaceProvider(previewView.surfaceProvider)
-                }
-
-                imageCapture = ImageCapture.Builder()
-                    .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
-                    .build()
-
-                val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
-                provider.bindToLifecycle(lifecycleOwner, cameraSelector, preview, imageCapture)
-                _isCameraReady.value = true
-                Log.i(TAG, "OCR CameraX bound successfully.")
-            } catch (e: Exception) {
-                Log.e(TAG, "Failed to bind CameraX for OCR: ${e.message}", e)
-                _isCameraReady.value = false
-            }
+            previewView.post { bindUseCases(cameraProviderFuture, lifecycleOwner, previewView) }
         }, ContextCompat.getMainExecutor(context))
+    }
+
+    private fun bindUseCases(
+        providerFuture: Future<ProcessCameraProvider>,
+        lifecycleOwner: LifecycleOwner,
+        previewView: PreviewView
+    ) {
+        try {
+            val provider = providerFuture.get().also { cameraProvider = it }
+            provider.unbindAll()
+
+            val preview = Preview.Builder().build().also {
+                it.setSurfaceProvider(previewView.surfaceProvider)
+            }
+            val capture = buildImageCapture().also { imageCapture = it }
+
+            val viewPort = previewView.viewPort
+            if (viewPort == null) Log.w(TAG, "PreviewView viewport unavailable; OCR will use the full frame.")
+            val useCaseGroup = UseCaseGroup.Builder()
+                .addUseCase(preview)
+                .addUseCase(capture)
+                .apply { viewPort?.let { setViewPort(it) } }
+                .build()
+
+            provider.bindToLifecycle(lifecycleOwner, CameraSelector.DEFAULT_BACK_CAMERA, useCaseGroup)
+            _isCameraReady.value = true
+            Log.i(TAG, "OCR CameraX bound successfully.")
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to bind CameraX for OCR: ${e.message}", e)
+            _isCameraReady.value = false
+        }
+    }
+
+    private fun buildImageCapture(): ImageCapture {
+        val resolutionSelector = ResolutionSelector.Builder()
+            .setAspectRatioStrategy(AspectRatioStrategy.RATIO_4_3_FALLBACK_AUTO_STRATEGY)
+            .setResolutionStrategy(
+                ResolutionStrategy(
+                    Size(OCR_TARGET_WIDTH, OCR_TARGET_HEIGHT),
+                    ResolutionStrategy.FALLBACK_RULE_CLOSEST_HIGHER_THEN_LOWER
+                )
+            )
+            .build()
+        return ImageCapture.Builder()
+            .setCaptureMode(ImageCapture.CAPTURE_MODE_MAXIMIZE_QUALITY)
+            .setResolutionSelector(resolutionSelector)
+            .build()
     }
 
     fun captureAndRead() {

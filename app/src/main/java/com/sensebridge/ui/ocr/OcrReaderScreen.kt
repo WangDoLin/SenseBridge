@@ -112,7 +112,6 @@ fun OcrReaderScreen(
             verticalArrangement = Arrangement.SpaceBetween,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Live Camera Viewfinder Card
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -145,7 +144,6 @@ fun OcrReaderScreen(
                 }
             }
 
-            // Recognized Text Result Card
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -176,7 +174,6 @@ fun OcrReaderScreen(
                 }
             }
 
-            // Big Tap-to-Read Action Button
             Button(
                 onClick = { viewModel.captureAndRead() },
                 enabled = !isReading,
