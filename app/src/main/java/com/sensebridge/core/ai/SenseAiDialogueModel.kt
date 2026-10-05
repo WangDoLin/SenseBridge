@@ -47,6 +47,7 @@ data class DialogueTurn(
 )
 
 class SenseAiDialogueModel @Inject constructor(
+    private val neuralClassifier: SenseAiNeuralClassifier? = null,
     private val slmEngine: OnDeviceSlmInferenceEngine? = null,
     private val maxHistoryTurns: Int = 5
 ) {
@@ -182,7 +183,17 @@ class SenseAiDialogueModel @Inject constructor(
 
     fun getHistory(): List<DialogueTurn> = conversationHistory.toList()
 
-    private fun detectIntent(input: String): DialogueIntent {
+    fun detectIntent(input: String): DialogueIntent {
+        if (neuralClassifier != null && neuralClassifier.isReady()) {
+            val prediction = neuralClassifier.classify(input)
+            if (prediction.confidence >= 0.40f && prediction.intent != DialogueIntent.GENERAL) {
+                return prediction.intent
+            }
+        }
+        return detectRuleIntent(input)
+    }
+
+    private fun detectRuleIntent(input: String): DialogueIntent {
         val text = input.lowercase()
         return when {
             text.containsAny("chào,hello,hi,xin chào,alo") -> DialogueIntent.GREETING

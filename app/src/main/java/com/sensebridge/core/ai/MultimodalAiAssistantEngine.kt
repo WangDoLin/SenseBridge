@@ -23,6 +23,7 @@ class MultimodalAiAssistantEngine @Inject constructor(
     private val eventEngine: EventEngine,
     private val textToSpeechManager: TextToSpeechManager,
     private val hapticManager: HapticManager,
+    private val neuralClassifier: SenseAiNeuralClassifier? = null,
     private val slmEngine: OnDeviceSlmInferenceEngine? = null
 ) {
     companion object {
@@ -33,7 +34,10 @@ class MultimodalAiAssistantEngine @Inject constructor(
     private val engineScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
     private val sceneMemory = MultimodalSceneMemory()
     private val reasoner = AiMultimodalReasoner()
-    private val dialogueModel = SenseAiDialogueModel(slmEngine = slmEngine)
+    private val dialogueModel = SenseAiDialogueModel(
+        neuralClassifier = neuralClassifier,
+        slmEngine = slmEngine
+    )
     private val lastInsightTimestamps = ConcurrentHashMap<String, Long>()
 
     private val _latestInsight = MutableStateFlow<AiProactiveInsight?>(null)

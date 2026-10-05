@@ -1,0 +1,189 @@
+{
+  "intents": [
+    {
+      "tag": "GREETING",
+      "patterns": [
+        "xin chào",
+        "chào bạn",
+        "chào trợ lý",
+        "chào sense ai",
+        "alo bạn ơi",
+        "hello bạn",
+        "hi trợ lý",
+        "có ai ở đó không",
+        "bạn ơi",
+        "chào buổi sáng",
+        "chào buổi chiều",
+        "chào buổi tối",
+        "xin chào trợ lý ảo",
+        "ê bạn ơi",
+        "bạn có đó không"
+      ]
+    },
+    {
+      "tag": "SAFETY_CHECK",
+      "patterns": [
+        "có an toàn không",
+        "tôi đi tiếp được không",
+        "băng qua đường được chưa",
+        "phía trước có xe không",
+        "có nguy hiểm gì không",
+        "bước tiếp có vấp không",
+        "đường này đi được không",
+        "tôi có thể qua đường không",
+        "có chướng ngại vật trước mặt không",
+        "có an toàn để bước đi không",
+        "bước thêm một bước được không",
+        "có hố sâu hay bậc thang không",
+        "phía trước an toàn không bạn",
+        "tôi qua đường lúc này được chưa",
+        "đường đi có thông thoáng không"
+      ]
+    },
+    {
+      "tag": "SURROUNDINGS_OBSERVE",
+      "patterns": [
+        "xung quanh có những gì",
+        "trước mặt tôi là gì",
+        "camera thấy gì vậy",
+        "quan sát giúp tôi xung quanh",
+        "phía trước có người không",
+        "bên cạnh có gì",
+        "miêu tả không gian giúp tôi",
+        "có gì ở bên trái không",
+        "có gì ở bên phải không",
+        "nhìn giúp tôi xem có gì",
+        "có đồ vật nào cản đường không",
+        "xem giúp tôi quang cảnh xung quanh",
+        "bạn nhìn thấy những ai",
+        "phía trước có chướng ngại gì",
+        "xung quanh có đông người không"
+      ]
+    },
+    {
+      "tag": "READ_TEXT",
+      "patterns": [
+        "đọc chữ trên biển giúp tôi",
+        "biển báo viết gì vậy",
+        "trên tường có chữ gì",
+        "đọc biển hiệu cửa hàng",
+        "chữ trên bảng là gì",
+        "có chữ gì trước mặt không",
+        "đọc số phòng giúp tôi",
+        "đọc tên tuyến xe buýt",
+        "quét chữ giúp tôi",
+        "đọc nhãn chai lọ này",
+        "biển này ghi nội dung gì",
+        "đọc giúp tôi văn bản phía trước",
+        "xem chữ viết trên bảng chỉ dẫn",
+        "đọc tờ giấy trước mặt",
+        "biển báo giao thông này là gì"
+      ]
+    },
+    {
+      "tag": "SOUND_INQUIRY",
+      "patterns": [
+        "tiếng gì kêu vậy bạn",
+        "vừa có âm thanh gì thế",
+        "nghe thấy tiếng gì không",
+        "sao ồn ào quá vậy",
+        "đo mức ồn giúp tôi",
+        "tiếng động vừa rồi là gì",
+        "xung quanh có tiếng người nói không",
+        "có tiếng còi xe không",
+        "âm thanh lạ phía trước là gì",
+        "có tiếng chuông báo động không",
+        "đây là tiếng xe cộ hay tiếng gì",
+        "bạn nghe thấy gì không",
+        "độ ồn hiện tại là bao nhiêu",
+        "tiếng còi hú ở hướng nào",
+        "xung quanh có tiếng động gì bất thường không"
+      ]
+    },
+    {
+      "tag": "HELP_REQUEST",
+      "patterns": [
+        "cứu tôi với",
+        "giúp tôi khẩn cấp",
+        "tôi đang gặp nguy hiểm",
+        "cần hỗ trợ khẩn cấp",
+        "cứu với bạn ơi",
+        "gọi người giúp tôi với",
+        "tôi bị lạc đường rồi",
+        "tôi bị ngã giúp tôi với",
+        "nguy cấp quá",
+        "báo động giúp tôi",
+        "tôi cảm thấy không an toàn",
+        "giúp đỡ khẩn cấp ngay",
+        "tôi cần cứu hộ",
+        "có ai cứu tôi không",
+        "nguy hiểm quá giúp tôi"
+      ]
+    },
+    {
+      "tag": "SITUATION_INQUIRY",
+      "patterns": [
+        "tình hình thế nào rồi",
+        "hiện tại tôi đang ở đâu",
+        "tình huống xung quanh ra sao",
+        "báo cáo tình hình hiện tại",
+        "khu vực này là môi trường gì",
+        "không gian này thế nào",
+        "tình trạng hiện tại ra sao",
+        "cập nhật tình hình giúp tôi",
+        "tôi đang ở trong nhà hay ngoài đường",
+        "khu vực xung quanh hiện tại thế nào"
+      ]
+    },
+    {
+      "tag": "FOLLOW_UP",
+      "patterns": [
+        "còn bây giờ thì sao",
+        "thế hiện tại thế nào",
+        "lúc này thì sao rồi",
+        "tiếp theo là gì",
+        "vừa rồi thì sao",
+        "bây giờ đã an toàn chưa",
+        "tiếp tục thế nào",
+        "có thay đổi gì không",
+        "còn chướng ngại vật không",
+        "bây giờ đi được chưa"
+      ]
+    },
+    {
+      "tag": "SMALLTALK",
+      "patterns": [
+        "cảm ơn bạn nhiều",
+        "bạn tên là gì",
+        "bạn là ai",
+        "bạn thông minh quá",
+        "cảm ơn trợ lý",
+        "tạm biệt bạn",
+        "hẹn gặp lại",
+        "chúc một ngày tốt lành",
+        "tuyệt vời lắm",
+        "bạn làm việc rất tốt",
+        "rất cảm ơn bạn",
+        "bạn tên gì vậy",
+        "ai tạo ra bạn",
+        "tạm biệt nhé",
+        "chúc bạn vui vẻ"
+      ]
+    },
+    {
+      "tag": "GENERAL",
+      "patterns": [
+        "nói gì đó đi",
+        "bạn biết làm gì",
+        "hướng dẫn sử dụng",
+        "tôi có thể hỏi những gì",
+        "bạn hỗ trợ được những tính năng nào",
+        "giải thích giúp tôi",
+        "bạn có nghe thấy tôi không",
+        "thử nghiệm micro",
+        "bạn có hiểu tôi nói không",
+        "trợ lý có thể làm được gì"
+      ]
+    }
+  ]
+}

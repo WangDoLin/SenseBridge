@@ -32,6 +32,9 @@ class SlmModelManager @Inject constructor(
         val internalTask = File(internalDir, ALT_MODEL_NAME)
         if (internalTask.exists() && internalTask.length() > 0) return internalTask
 
+        extractAssetModelIfPresent(DEFAULT_MODEL_NAME)?.let { return it }
+        extractAssetModelIfPresent(ALT_MODEL_NAME)?.let { return it }
+
         val adbTmpBin = File("/data/local/tmp", DEFAULT_MODEL_NAME)
         if (adbTmpBin.exists() && adbTmpBin.canRead() && adbTmpBin.length() > 0) return adbTmpBin
 
@@ -39,6 +42,24 @@ class SlmModelManager @Inject constructor(
         if (adbTmpTask.exists() && adbTmpTask.canRead() && adbTmpTask.length() > 0) return adbTmpTask
 
         return null
+    }
+
+    private fun extractAssetModelIfPresent(assetName: String): File? {
+        val targetDir = File(context.filesDir, "models")
+        if (!targetDir.exists()) targetDir.mkdirs()
+        val targetFile = File(targetDir, assetName)
+        if (targetFile.exists() && targetFile.length() > 0) return targetFile
+
+        return try {
+            context.assets.open(assetName).use { input ->
+                targetFile.outputStream().use { output ->
+                    input.copyTo(output)
+                }
+            }
+            if (targetFile.exists() && targetFile.length() > 0) targetFile else null
+        } catch (e: Exception) {
+            null
+        }
     }
 
     fun isModelAvailable(): Boolean = getModelFile() != null
