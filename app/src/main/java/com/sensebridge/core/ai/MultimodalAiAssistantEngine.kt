@@ -22,7 +22,8 @@ import javax.inject.Singleton
 class MultimodalAiAssistantEngine @Inject constructor(
     private val eventEngine: EventEngine,
     private val textToSpeechManager: TextToSpeechManager,
-    private val hapticManager: HapticManager
+    private val hapticManager: HapticManager,
+    private val slmEngine: OnDeviceSlmInferenceEngine? = null
 ) {
     companion object {
         private const val DEFAULT_COOLDOWN_MS = 7000L
@@ -32,7 +33,7 @@ class MultimodalAiAssistantEngine @Inject constructor(
     private val engineScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
     private val sceneMemory = MultimodalSceneMemory()
     private val reasoner = AiMultimodalReasoner()
-    private val dialogueModel = SenseAiDialogueModel()
+    private val dialogueModel = SenseAiDialogueModel(slmEngine = slmEngine)
     private val lastInsightTimestamps = ConcurrentHashMap<String, Long>()
 
     private val _latestInsight = MutableStateFlow<AiProactiveInsight?>(null)
@@ -78,9 +79,24 @@ class MultimodalAiAssistantEngine @Inject constructor(
         )
     }
 
+    suspend fun askAssistantAsync(userQuery: String): AiQueryAnswer {
+        val response = converseAsync(userQuery)
+        return AiQueryAnswer(
+            answerText = response.replyText,
+            priority = response.priority
+        )
+    }
+
     fun converse(userQuery: String): DialogueResponse {
         val snapshot = sceneMemory.getSnapshot()
         val response = dialogueModel.converse(userQuery, snapshot)
+        textToSpeechManager.speak(response.replyText, response.priority)
+        return response
+    }
+
+    suspend fun converseAsync(userQuery: String): DialogueResponse {
+        val snapshot = sceneMemory.getSnapshot()
+        val response = dialogueModel.converseAsync(userQuery, snapshot)
         textToSpeechManager.speak(response.replyText, response.priority)
         return response
     }

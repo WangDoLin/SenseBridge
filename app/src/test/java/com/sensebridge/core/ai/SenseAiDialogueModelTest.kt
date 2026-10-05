@@ -216,4 +216,28 @@ class SenseAiDialogueModelTest {
         assertEquals(DialogueIntent.FOLLOW_UP, followUp.intent)
         assertTrue(followUp.replyText.contains("Cập nhật tiếp theo"))
     }
+
+    @Test
+    fun converseAsync_whenSlmReady_usesGeneratedResponse() = kotlinx.coroutines.runBlocking {
+        val mockSlm = io.mockk.mockk<OnDeviceSlmInferenceEngine>()
+        io.mockk.every { mockSlm.isReady() } returns true
+        io.mockk.coEvery { mockSlm.generateResponse(any(), any()) } returns "Chào bạn, tôi là mô hình SLM tự do."
+
+        val hybridModel = SenseAiDialogueModel(slmEngine = mockSlm)
+        val response = hybridModel.converseAsync("Xin chào", memory.getSnapshot())
+
+        assertEquals("Chào bạn, tôi là mô hình SLM tự do.", response.replyText)
+        assertEquals(DialogueIntent.GREETING, response.intent)
+    }
+
+    @Test
+    fun converseAsync_whenSlmNotReady_fallsBackToCognitiveReply() = kotlinx.coroutines.runBlocking {
+        val mockSlm = io.mockk.mockk<OnDeviceSlmInferenceEngine>()
+        io.mockk.every { mockSlm.isReady() } returns false
+
+        val hybridModel = SenseAiDialogueModel(slmEngine = mockSlm)
+        val response = hybridModel.converseAsync("Xin chào", memory.getSnapshot())
+
+        assertTrue(response.replyText.contains("Xin chào bạn! Mình là AI SenseBridge"))
+    }
 }

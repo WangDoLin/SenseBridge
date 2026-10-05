@@ -89,10 +89,11 @@ dependencies {
     implementation(libs.google.mlkit.`object`.detection)
     implementation(libs.google.mlkit.text.recognition)
 
-    // TensorFlow Lite
+    // TensorFlow Lite & On-Device GenAI
     implementation(libs.tensorflow.lite)
     implementation(libs.tensorflow.lite.support)
     implementation(libs.tensorflow.lite.task.audio)
+    implementation(libs.mediapipe.tasks.genai)
 
     // Hilt
     implementation(libs.hilt.android)

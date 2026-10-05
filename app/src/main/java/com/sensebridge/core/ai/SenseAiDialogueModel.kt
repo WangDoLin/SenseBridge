@@ -1,6 +1,7 @@
 package com.sensebridge.core.ai
 
 import com.sensebridge.core.model.PriorityLevel
+import javax.inject.Inject
 
 enum class SituationState(val vietnameseName: String) {
     EMERGENCY_HAZARD("Tình huống nguy hiểm khẩn cấp"),
@@ -45,7 +46,8 @@ data class DialogueTurn(
     val timestamp: Long = System.currentTimeMillis()
 )
 
-class SenseAiDialogueModel(
+class SenseAiDialogueModel @Inject constructor(
+    private val slmEngine: OnDeviceSlmInferenceEngine? = null,
     private val maxHistoryTurns: Int = 5
 ) {
     companion object {
@@ -146,6 +148,28 @@ class SenseAiDialogueModel(
 
         return DialogueResponse(
             replyText = replyText,
+            intent = intent,
+            situation = situationResult.state,
+            priority = determineResponsePriority(intent, situationResult)
+        )
+    }
+
+    suspend fun converseAsync(rawInput: String, snapshot: SceneSnapshot): DialogueResponse {
+        val input = rawInput.trim()
+        val situationResult = classifySituation(snapshot)
+        val intent = detectIntent(input)
+
+        val slmReply = if (slmEngine != null && slmEngine.isReady()) {
+            slmEngine.generateResponse(input, snapshot)
+        } else {
+            null
+        }
+
+        val finalReply = slmReply ?: generateReply(intent, input, situationResult, snapshot)
+        recordTurn(input, finalReply, intent)
+
+        return DialogueResponse(
+            replyText = finalReply,
             intent = intent,
             situation = situationResult.state,
             priority = determineResponsePriority(intent, situationResult)
