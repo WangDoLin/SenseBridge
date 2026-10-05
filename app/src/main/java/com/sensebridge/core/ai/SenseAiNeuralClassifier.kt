@@ -136,7 +136,7 @@ class SenseAiNeuralClassifier @Inject constructor(
     }
 
     private fun textToSequence(text: String): IntArray {
-        val clean = text.lowercase().replace(Regex("""[^\w\s]"""), " ").trim()
+        val clean = text.lowercase().replace(Regex("""[^\p{L}\p{N}\s]+"""), " ").trim()
         val tokens = clean.split(Regex("""\s+""")).filter { it.isNotBlank() }
         val sequence = IntArray(MAX_SEQ_LEN) { 0 }
 

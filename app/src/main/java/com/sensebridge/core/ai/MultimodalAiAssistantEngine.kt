@@ -24,7 +24,8 @@ class MultimodalAiAssistantEngine @Inject constructor(
     private val textToSpeechManager: TextToSpeechManager,
     private val hapticManager: HapticManager,
     private val neuralClassifier: SenseAiNeuralClassifier? = null,
-    private val slmEngine: OnDeviceSlmInferenceEngine? = null
+    private val slmEngine: OnDeviceSlmInferenceEngine? = null,
+    private val continualLearningEngine: ContinualLearningEngine? = null
 ) {
     companion object {
         private const val DEFAULT_COOLDOWN_MS = 7000L
@@ -36,7 +37,8 @@ class MultimodalAiAssistantEngine @Inject constructor(
     private val reasoner = AiMultimodalReasoner()
     private val dialogueModel = SenseAiDialogueModel(
         neuralClassifier = neuralClassifier,
-        slmEngine = slmEngine
+        slmEngine = slmEngine,
+        continualLearningEngine = continualLearningEngine
     )
     private val lastInsightTimestamps = ConcurrentHashMap<String, Long>()
 

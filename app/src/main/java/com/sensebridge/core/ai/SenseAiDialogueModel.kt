@@ -49,6 +49,7 @@ data class DialogueTurn(
 class SenseAiDialogueModel @Inject constructor(
     private val neuralClassifier: SenseAiNeuralClassifier? = null,
     private val slmEngine: OnDeviceSlmInferenceEngine? = null,
+    private val continualLearningEngine: ContinualLearningEngine? = null,
     private val maxHistoryTurns: Int = 5
 ) {
     companion object {
@@ -158,7 +159,9 @@ class SenseAiDialogueModel @Inject constructor(
     suspend fun converseAsync(rawInput: String, snapshot: SceneSnapshot): DialogueResponse {
         val input = rawInput.trim()
         val situationResult = classifySituation(snapshot)
-        val intent = detectIntent(input)
+        val intent = detectIntentAsync(input)
+
+        val memoryContext = continualLearningEngine?.retrieveEpisodicMemory(input, snapshot)
 
         val slmReply = if (slmEngine != null && slmEngine.isReady()) {
             slmEngine.generateResponse(input, snapshot)
@@ -166,8 +169,22 @@ class SenseAiDialogueModel @Inject constructor(
             null
         }
 
-        val finalReply = slmReply ?: generateReply(intent, input, situationResult, snapshot)
+        val baseReply = slmReply ?: generateReply(intent, input, situationResult, snapshot)
+        val finalReply = if (!memoryContext.isNullOrBlank() && !baseReply.contains(memoryContext)) {
+            "$memoryContext $baseReply"
+        } else {
+            baseReply
+        }
+
         recordTurn(input, finalReply, intent)
+
+        continualLearningEngine?.recordAndLearnSession(
+            userInput = input,
+            aiResponse = finalReply,
+            intent = intent,
+            situation = situationResult.state,
+            snapshot = snapshot
+        )
 
         return DialogueResponse(
             replyText = finalReply,
@@ -175,6 +192,16 @@ class SenseAiDialogueModel @Inject constructor(
             situation = situationResult.state,
             priority = determineResponsePriority(intent, situationResult)
         )
+    }
+
+    suspend fun detectIntentAsync(input: String): DialogueIntent {
+        if (continualLearningEngine != null) {
+            val learned = continualLearningEngine.predictLearnedIntent(input)
+            if (learned != null && learned.confidence >= 0.50f) {
+                return learned.intent
+            }
+        }
+        return detectIntent(input)
     }
 
     fun resetDialogue() {
