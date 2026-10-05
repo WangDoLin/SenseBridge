@@ -14,6 +14,7 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.sensebridge.MainActivity
 import com.sensebridge.R
+import com.sensebridge.core.ai.MultimodalAiAssistantEngine
 import com.sensebridge.core.engine.EventEngine
 import com.sensebridge.core.model.PriorityLevel
 import com.sensebridge.core.model.SensorySource
@@ -76,6 +77,9 @@ class SenseBridgeForegroundService : Service() {
     @Inject
     lateinit var eventEngine: EventEngine
 
+    @Inject
+    lateinit var multimodalAiAssistantEngine: MultimodalAiAssistantEngine
+
     private val serviceScope = CoroutineScope(Dispatchers.Main + Job())
     private var eventObserverJob: Job? = null
 
@@ -115,6 +119,7 @@ class SenseBridgeForegroundService : Service() {
             }
 
             audioRecorderManager.startListening()
+            multimodalAiAssistantEngine.startObservation()
             observeEmergencyEvents()
             Log.i(TAG, "Foreground acoustic monitoring started.")
         } catch (e: Exception) {
@@ -127,10 +132,9 @@ class SenseBridgeForegroundService : Service() {
         eventObserverJob = serviceScope.launch {
             eventEngine.recentEvents.collectLatest { events ->
                 val latest = events.firstOrNull() ?: return@collectLatest
-                // Filter to acoustic classifier: user-initiated AAC phrases or OCR reading must never trigger alarm notification
-                if (latest.source == SensorySource.AUDIO_CLASSIFIER &&
+                val isAlert = (latest.source == SensorySource.AUDIO_CLASSIFIER || latest.source == SensorySource.AI_ASSISTANT) &&
                     (latest.priority == PriorityLevel.CRITICAL_P0 || latest.priority == PriorityLevel.WARNING_P1)
-                ) {
+                if (isAlert) {
                     postEmergencyNotification(
                         title = latest.displayTitle,
                         message = latest.spokenText,
@@ -171,6 +175,7 @@ class SenseBridgeForegroundService : Service() {
     private fun stopForegroundMonitoring() {
         eventObserverJob?.cancel()
         eventObserverJob = null
+        multimodalAiAssistantEngine.stopObservation()
         audioRecorderManager.stopListening()
         stopForeground(STOP_FOREGROUND_REMOVE)
         stopSelf()
@@ -246,6 +251,7 @@ class SenseBridgeForegroundService : Service() {
     override fun onDestroy() {
         super.onDestroy()
         eventObserverJob?.cancel()
+        multimodalAiAssistantEngine.stopObservation()
         audioRecorderManager.stopListening()
     }
 }

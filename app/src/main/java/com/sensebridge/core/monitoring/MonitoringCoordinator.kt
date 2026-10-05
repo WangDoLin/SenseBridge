@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.util.Log
 import androidx.core.content.ContextCompat
+import com.sensebridge.core.ai.MultimodalAiAssistantEngine
 import com.sensebridge.core.service.SenseBridgeForegroundService
 import com.sensebridge.data.repository.UserPreferencesRepository
 import com.sensebridge.input.sound.AudioRecorderManager
@@ -32,6 +33,7 @@ class MonitoringCoordinator(
     private val audioRecorderManager: AudioRecorderManager,
     private val energyGate: DecibelEnergyGate,
     private val preferencesRepository: UserPreferencesRepository,
+    private val aiAssistantEngine: MultimodalAiAssistantEngine? = null,
     dispatcher: CoroutineDispatcher = Dispatchers.Default
 ) {
     @Inject
@@ -39,8 +41,9 @@ class MonitoringCoordinator(
         @ApplicationContext context: Context,
         audioRecorderManager: AudioRecorderManager,
         energyGate: DecibelEnergyGate,
-        preferencesRepository: UserPreferencesRepository
-    ) : this(context, audioRecorderManager, energyGate, preferencesRepository, Dispatchers.Default)
+        preferencesRepository: UserPreferencesRepository,
+        aiAssistantEngine: MultimodalAiAssistantEngine
+    ) : this(context, audioRecorderManager, energyGate, preferencesRepository, aiAssistantEngine, Dispatchers.Default)
 
     companion object {
         private const val TAG = "MonitoringCoordinator"
@@ -63,7 +66,16 @@ class MonitoringCoordinator(
                 Log.d(TAG, "Preferences synced: bgEnabled=${prefs.isBackgroundMonitoringEnabled}, thresholdDb=${prefs.thresholdDb}")
             }
         }
+        if (aiAssistantEngine != null) {
+            coordinatorScope.launch {
+                currentDecibels.collect { db ->
+                    aiAssistantEngine.updateAmbientDecibels(db)
+                }
+            }
+        }
     }
+
+    fun askAiAssistant(query: String) = aiAssistantEngine?.askAssistant(query)
 
     /**
      * Starts listening. If background monitoring is enabled, also launches the foreground service.

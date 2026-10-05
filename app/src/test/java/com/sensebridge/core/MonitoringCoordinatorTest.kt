@@ -38,6 +38,7 @@ class MonitoringCoordinatorTest {
     private val energyGate = DecibelEnergyGate()
 
     private val recorderRecordingState = MutableStateFlow(false)
+    private val recorderDecibelState = MutableStateFlow(0.0)
     private val preferencesFlow = MutableStateFlow(
         UserPreferences(
             enableHaptic = true,
@@ -60,6 +61,7 @@ class MonitoringCoordinatorTest {
         every { SenseBridgeForegroundService.stop(any()) } returns Unit
 
         every { mockRecorder.isRecording } returns recorderRecordingState
+        every { mockRecorder.currentDecibels } returns recorderDecibelState
         every { mockPreferencesRepo.userPreferencesFlow } returns preferencesFlow
         every {
             ContextCompat.checkSelfPermission(mockContext, Manifest.permission.RECORD_AUDIO)

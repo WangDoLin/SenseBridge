@@ -59,7 +59,8 @@ class EventEngine @Inject constructor(
      */
     fun submitEvent(rawEvent: SenseEvent) {
         val isUserAction = rawEvent.source == SensorySource.COMMUNICATION_INPUT ||
-            rawEvent.source == SensorySource.VISION_OCR
+            rawEvent.source == SensorySource.VISION_OCR ||
+            rawEvent.source == SensorySource.AI_ASSISTANT
 
         // User-initiated actions (AAC speech, OCR reading) must never be dropped even if sensing is paused
         if (_isPaused.value && !isUserAction) {
