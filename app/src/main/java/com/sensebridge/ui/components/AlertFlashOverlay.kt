@@ -33,25 +33,17 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.sensebridge.output.visual.AlertOverlayManager
 import com.sensebridge.ui.theme.BgDark
+import com.sensebridge.ui.theme.BorderDark
+import com.sensebridge.ui.theme.SurfaceCard
 import com.sensebridge.ui.theme.TextPrimary
 import kotlinx.coroutines.delay
 
-/** Total time the full-screen flash stays visible before auto-dismissing. */
 private const val FLASH_VISIBLE_MS = 4000L
-
-/** 1.5 flashes/s keeps well under the WCAG 2.3.1 limit of 3 flashes/s (photosensitive epilepsy). */
 private const val FLASH_HALF_PERIOD_MS = 333
 private const val FLASH_MIN_ALPHA = 0.35f
 private const val FLASH_MAX_ALPHA = 0.92f
 private const val CARD_ALPHA = 0.88f
 
-/**
- * Full-screen high-contrast flash for urgent sound alerts.
- *
- * A deaf user looking at the phone may not feel the vibration (e.g. phone on a table); a
- * pulsing colour field + very large text is visible from across the room. Tap anywhere to
- * dismiss. TalkBack users get the title announced through an assertive live region.
- */
 @Composable
 fun AlertFlashOverlay(overlayManager: AlertOverlayManager) {
     val state by overlayManager.visualState.collectAsState()
@@ -59,7 +51,6 @@ fun AlertFlashOverlay(overlayManager: AlertOverlayManager) {
     if (event == null || !state.isFlashing) return
 
     LaunchedEffect(event.id) {
-        // An alert that fired while the app was in the background must not flash stale on reopen
         val ageMs = System.currentTimeMillis() - event.timestamp
         delay((FLASH_VISIBLE_MS - ageMs).coerceAtLeast(0L))
         overlayManager.dismissAlert()
@@ -90,9 +81,8 @@ private fun AlertFlashContent(title: String, message: String) {
     Column(
         modifier = Modifier
             .padding(24.dp)
-            // Solid card keeps text contrast constant while the coloured field pulses behind it
-            .background(com.sensebridge.ui.theme.SurfaceCard.copy(alpha = CARD_ALPHA), RoundedCornerShape(16.dp))
-            .border(3.dp, com.sensebridge.ui.theme.BorderDark, RoundedCornerShape(16.dp))
+            .background(SurfaceCard.copy(alpha = CARD_ALPHA), RoundedCornerShape(16.dp))
+            .border(3.dp, BorderDark, RoundedCornerShape(16.dp))
             .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center

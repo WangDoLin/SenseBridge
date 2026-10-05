@@ -9,18 +9,12 @@ import kotlinx.coroutines.flow.asStateFlow
 import javax.inject.Inject
 import javax.inject.Singleton
 
-/**
- * State representing visual screen alert overlays.
- */
 data class VisualAlertState(
     val activeEvent: SenseEvent? = null,
     val isFlashing: Boolean = false,
     val alertColorHex: Long = 0xFF000000
 )
 
-/**
- * Manages high-contrast visual radar and flash cues for Deaf Assist and general display.
- */
 @Singleton
 class AlertOverlayManager @Inject constructor() {
 
@@ -29,16 +23,14 @@ class AlertOverlayManager @Inject constructor() {
 
     fun displayAlert(event: SenseEvent) {
         val colorHex = when (event.priority) {
-            PriorityLevel.CRITICAL_P0 -> 0xFFE53935 // Bright Red
-            PriorityLevel.WARNING_P1 -> 0xFFFDD835  // Warning Yellow
-            PriorityLevel.ATTENTION_P2 -> 0xFF1E88E5 // Brand Blue
-            PriorityLevel.INFO_P3 -> 0xFF43A047     // Green/Neutral
+            PriorityLevel.CRITICAL_P0 -> 0xFFE53935
+            PriorityLevel.WARNING_P1 -> 0xFFFDD835
+            PriorityLevel.ATTENTION_P2 -> 0xFF1E88E5
+            PriorityLevel.INFO_P3 -> 0xFF43A047
         }
 
         _visualState.value = VisualAlertState(
             activeEvent = event,
-            // Flash is for people who can't hear; vision alerts serve blind users, for whom a
-            // full-screen touch-blocking overlay would only get in TalkBack's way.
             isFlashing = event.priority.isUrgent && event.source == SensorySource.AUDIO_CLASSIFIER,
             alertColorHex = colorHex
         )
