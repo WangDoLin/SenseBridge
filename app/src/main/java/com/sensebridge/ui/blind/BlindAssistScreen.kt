@@ -1,7 +1,9 @@
 package com.sensebridge.ui.blind
 
 import androidx.camera.view.PreviewView
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -64,6 +66,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import com.sensebridge.core.model.PriorityLevel
 import com.sensebridge.core.model.SenseEvent
 import com.sensebridge.ui.theme.BgDark
+import com.sensebridge.ui.theme.BorderDark
 import com.sensebridge.ui.theme.P0DangerRed
 import com.sensebridge.ui.theme.P1WarningAmber
 import com.sensebridge.ui.theme.P2AttentionGreen
@@ -79,19 +82,24 @@ fun BlindAssistScreen(
     viewModel: BlindAssistViewModel,
     onBack: () -> Unit
 ) {
-    val lifecycleOwner = LocalLifecycleOwner.current
     val context = LocalContext.current
-    val previewView = remember { PreviewView(context) }
+    val lifecycleOwner = LocalLifecycleOwner.current
 
     val isCameraRunning by viewModel.isCameraRunning.collectAsState()
     val isBluetoothConnected by viewModel.isBluetoothConnected.collectAsState()
     val connectedDeviceName by viewModel.connectedDeviceName.collectAsState()
     val activeSearchQuery by viewModel.activeSearchQuery.collectAsState()
-    val lastFoundTarget by viewModel.lastFoundTarget.collectAsState()
-    val lastAnnouncedEvent by viewModel.lastAnnouncedEvent.collectAsState()
     val recentVisionEvents by viewModel.recentVisionEvents.collectAsState()
+    val lastAnnouncedEvent by viewModel.lastAnnouncedEvent.collectAsState()
 
     var searchQueryText by remember { mutableStateOf("") }
+
+    // Keep camera preview surface view remembered
+    val previewView = remember {
+        PreviewView(context).apply {
+            implementationMode = PreviewView.ImplementationMode.COMPATIBLE
+        }
+    }
 
     DisposableEffect(lifecycleOwner) {
         viewModel.startVision(lifecycleOwner, previewView)
@@ -136,8 +144,9 @@ fun BlindAssistScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(220.dp)
-                        .clip(RoundedCornerShape(16.dp))
-                        .background(SurfaceCard),
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(SurfaceCard)
+                        .border(2.dp, BorderDark, RoundedCornerShape(12.dp)),
                     contentAlignment = Alignment.Center
                 ) {
                     if (isCameraRunning) {
@@ -164,10 +173,11 @@ fun BlindAssistScreen(
             item {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(16.dp),
+                    shape = RoundedCornerShape(12.dp),
                     colors = CardDefaults.cardColors(
                         containerColor = if (activeSearchQuery != null) PrimaryBlue.copy(alpha = 0.15f) else SurfaceCard
-                    )
+                    ),
+                    border = BorderStroke(2.dp, BorderDark)
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -179,7 +189,7 @@ fun BlindAssistScreen(
                             )
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
-                                text = "🎯 ĐỊNH VỊ ĐỒ VẬT (NVIDIA LOCATE ARCHITECTURE)",
+                                text = "ĐỊNH VỊ ĐỒ VẬT (NVIDIA LOCATE ARCHITECTURE)",
                                 style = MaterialTheme.typography.titleSmall,
                                 color = PrimaryBlue
                             )
@@ -201,14 +211,15 @@ fun BlindAssistScreen(
                                         searchQueryText = ""
                                         viewModel.clearSearch()
                                     }) {
-                                        Icon(Icons.Default.Clear, contentDescription = "Xóa", tint = TextMuted)
+                                        Icon(Icons.Default.Clear, contentDescription = "Xóa tìm kiếm", tint = TextMuted)
                                     }
                                 }
                             },
                             modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(12.dp),
                             colors = OutlinedTextFieldDefaults.colors(
                                 focusedBorderColor = PrimaryBlue,
-                                unfocusedBorderColor = TextMuted.copy(alpha = 0.3f),
+                                unfocusedBorderColor = BorderDark.copy(alpha = 0.3f),
                                 focusedTextColor = TextPrimary,
                                 unfocusedTextColor = TextPrimary
                             )
@@ -216,7 +227,7 @@ fun BlindAssistScreen(
 
                         Spacer(modifier = Modifier.height(10.dp))
 
-                        // Quick Chips
+                        // Quick Grounding Preset Chips
                         LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             val chips = listOf("người", "cửa", "ghế", "bàn", "xe")
                             item {
@@ -229,7 +240,7 @@ fun BlindAssistScreen(
                                     label = { Text("Toàn cảnh (Chống spam)") },
                                     colors = FilterChipDefaults.filterChipColors(
                                         selectedContainerColor = P2AttentionGreen,
-                                        selectedLabelColor = BgDark
+                                        selectedLabelColor = SurfaceCard
                                     )
                                 )
                             }
@@ -243,7 +254,7 @@ fun BlindAssistScreen(
                                     label = { Text("Tìm $chip") },
                                     colors = FilterChipDefaults.filterChipColors(
                                         selectedContainerColor = PrimaryBlue,
-                                        selectedLabelColor = BgDark
+                                        selectedLabelColor = SurfaceCard
                                     )
                                 )
                             }
@@ -257,7 +268,8 @@ fun BlindAssistScreen(
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp),
-                    colors = CardDefaults.cardColors(containerColor = SurfaceCard)
+                    colors = CardDefaults.cardColors(containerColor = SurfaceCard),
+                    border = BorderStroke(2.dp, BorderDark)
                 ) {
                     Row(
                         modifier = Modifier
@@ -305,10 +317,11 @@ fun BlindAssistScreen(
             item {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(16.dp),
+                    shape = RoundedCornerShape(12.dp),
                     colors = CardDefaults.cardColors(
                         containerColor = if (lastAnnouncedEvent != null) PrimaryBlue.copy(alpha = 0.15f) else SurfaceCard
-                    )
+                    ),
+                    border = BorderStroke(2.dp, BorderDark)
                 ) {
                     Column(modifier = Modifier.padding(18.dp)) {
                         Text(
@@ -333,18 +346,22 @@ fun BlindAssistScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(56.dp),
+                    shape = RoundedCornerShape(10.dp),
+                    border = BorderStroke(2.dp, BorderDark),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = if (isCameraRunning) SurfaceCard else PrimaryBlue
                     )
                 ) {
                     Icon(
                         imageVector = if (isCameraRunning) Icons.Default.VideocamOff else Icons.Default.Videocam,
-                        contentDescription = null
+                        contentDescription = null,
+                        tint = if (isCameraRunning) TextPrimary else SurfaceCard
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
                         text = if (isCameraRunning) "TẠM DỪNG QUÉT CAMERA" else "TIẾP TỤC QUÉT CAMERA",
-                        style = MaterialTheme.typography.titleMedium
+                        style = MaterialTheme.typography.titleMedium,
+                        color = if (isCameraRunning) TextPrimary else SurfaceCard
                     )
                 }
             }
@@ -363,7 +380,9 @@ fun BlindAssistScreen(
                 item {
                     Card(
                         modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(containerColor = SurfaceCard)
+                        shape = RoundedCornerShape(12.dp),
+                        colors = CardDefaults.cardColors(containerColor = SurfaceCard),
+                        border = BorderStroke(2.dp, BorderDark)
                     ) {
                         Text(
                             text = "Hệ thống đã lọc bỏ các chi tiết thừa. Khi có người, xe cộ, bậc thang hoặc chướng ngại vật thực sự trên đường đi, cảnh báo giọng nói sẽ phát ngay.",
@@ -393,8 +412,9 @@ private fun VisionDetectedCard(event: SenseEvent) {
 
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = SurfaceCard)
+        shape = RoundedCornerShape(10.dp),
+        colors = CardDefaults.cardColors(containerColor = SurfaceCard),
+        border = BorderStroke(1.5.dp, BorderDark)
     ) {
         Row(
             modifier = Modifier

@@ -2,19 +2,23 @@ package com.sensebridge.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-val BgDark = Color(0xFF0B0F19)
-val SurfaceDark = Color(0xFF161F30)
-val SurfaceCard = Color(0xFF1E293B)
-val BorderDark = Color(0xFF334155)
+/**
+ * LuminaByte Neo-Brutalist Theme Palette (Matching https://lumina-byte-website.vercel.app/#contact)
+ * High-contrast retro ink, warm paper surfaces, and bold accents.
+ */
+val BgDark = Color(0xFFFFF5F5)
+val SurfaceDark = Color(0xFFFFE0E0)
+val SurfaceCard = Color(0xFFFFFFFF)
+val BorderDark = Color(0xFF2B1818)
 
-val PrimaryBlue = Color(0xFF38BDF8)
-val PrimaryBlueVariant = Color(0xFF0284C7)
+val PrimaryBlue = Color(0xFFA03333)
+val PrimaryBlueVariant = Color(0xFFD94646)
 
-val P0DangerRed = Color(0xFFEF4444)
-val P1WarningAmber = Color(0xFFF59E0B)
-val P2AttentionGreen = Color(0xFF10B981)
-val P3InfoPurple = Color(0xFFA855F7)
+val P0DangerRed = Color(0xFFD94646)
+val P1WarningAmber = Color(0xFFB45309)
+val P2AttentionGreen = Color(0xFF047857)
+val P3InfoPurple = Color(0xFF7C3AED)
 
-val TextPrimary = Color(0xFFF8FAFC)
-val TextSecondary = Color(0xFF94A3B8)
-val TextMuted = Color(0xFF64748B)
+val TextPrimary = Color(0xFF2B1818)
+val TextSecondary = Color(0xB82B1818)
+val TextMuted = Color(0x8A2B1818)

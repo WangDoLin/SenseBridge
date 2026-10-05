@@ -3,6 +3,7 @@ package com.sensebridge.ui.deaf
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -57,6 +58,7 @@ import androidx.compose.ui.unit.dp
 import com.sensebridge.core.model.PriorityLevel
 import com.sensebridge.core.model.SenseEvent
 import com.sensebridge.ui.theme.BgDark
+import com.sensebridge.ui.theme.BorderDark
 import com.sensebridge.ui.theme.P0DangerRed
 import com.sensebridge.ui.theme.P1WarningAmber
 import com.sensebridge.ui.theme.P2AttentionGreen
@@ -99,10 +101,12 @@ fun DeafAssistScreen(
 
     val radarColor by animateColorAsState(
         targetValue = when {
-            normalizedDb > 0.7f -> P0DangerRed
-            normalizedDb > 0.4f -> P1WarningAmber
+            !isListening -> TextMuted
+            currentDb >= 84.0 -> P0DangerRed
+            currentDb >= 68.0 -> P1WarningAmber
             else -> P2AttentionGreen
         },
+        animationSpec = tween(200),
         label = "RadarColor"
     )
 
@@ -110,7 +114,7 @@ fun DeafAssistScreen(
         containerColor = BgDark,
         topBar = {
             TopAppBar(
-                title = { Text("Sound Assist (Trợ thính & Báo động)") },
+                title = { Text("Sound Assist (Trợ thính)") },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(
@@ -189,8 +193,9 @@ fun DeafAssistScreen(
             item {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(14.dp),
-                    colors = CardDefaults.cardColors(containerColor = SurfaceCard)
+                    shape = RoundedCornerShape(12.dp),
+                    colors = CardDefaults.cardColors(containerColor = SurfaceCard),
+                    border = BorderStroke(2.dp, BorderDark)
                 ) {
                     Row(
                         modifier = Modifier
@@ -250,7 +255,7 @@ fun DeafAssistScreen(
                         label = { Text("Đường phố (68 dB)") },
                         colors = FilterChipDefaults.filterChipColors(
                             selectedContainerColor = PrimaryBlue,
-                            selectedLabelColor = BgDark
+                            selectedLabelColor = SurfaceCard
                         )
                     )
                     Spacer(modifier = Modifier.width(12.dp))
@@ -263,7 +268,7 @@ fun DeafAssistScreen(
                         label = { Text("Phòng yên tĩnh (55 dB)") },
                         colors = FilterChipDefaults.filterChipColors(
                             selectedContainerColor = PrimaryBlue,
-                            selectedLabelColor = BgDark
+                            selectedLabelColor = SurfaceCard
                         )
                     )
                 }
@@ -278,18 +283,22 @@ fun DeafAssistScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(56.dp),
+                    shape = RoundedCornerShape(10.dp),
+                    border = BorderStroke(2.dp, BorderDark),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = if (isListening) SurfaceCard else P2AttentionGreen
                     )
                 ) {
                     Icon(
                         imageVector = if (isListening) Icons.Default.MicOff else Icons.Default.Mic,
-                        contentDescription = null
+                        contentDescription = null,
+                        tint = if (isListening) TextPrimary else SurfaceCard
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
                         text = if (isListening) "TẠM DỪNG MIC" else "BẮT ĐẦU LẮNG NGHE NGAY",
-                        style = MaterialTheme.typography.titleMedium
+                        style = MaterialTheme.typography.titleMedium,
+                        color = if (isListening) TextPrimary else SurfaceCard
                     )
                 }
             }
@@ -308,7 +317,9 @@ fun DeafAssistScreen(
                 item {
                     Card(
                         modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(containerColor = SurfaceCard)
+                        shape = RoundedCornerShape(12.dp),
+                        colors = CardDefaults.cardColors(containerColor = SurfaceCard),
+                        border = BorderStroke(2.dp, BorderDark)
                     ) {
                         Text(
                             text = "Chưa phát hiện âm thanh bất thường. Khi có tiếng còi xe, báo cháy hoặc tiếng động lớn, điện thoại sẽ lập tức rung mạnh và gửi thông báo!",
@@ -338,8 +349,9 @@ private fun AudioDetectedCard(event: SenseEvent) {
 
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = SurfaceCard)
+        shape = RoundedCornerShape(10.dp),
+        colors = CardDefaults.cardColors(containerColor = SurfaceCard),
+        border = BorderStroke(1.5.dp, BorderDark)
     ) {
         Row(
             modifier = Modifier
@@ -367,7 +379,7 @@ private fun AudioDetectedCard(event: SenseEvent) {
             }
             Text(
                 text = "${(event.confidence * 100).toInt()}%",
-                style = MaterialTheme.typography.labelLarge,
+                style = MaterialTheme.typography.labelMedium,
                 color = badgeColor
             )
         }

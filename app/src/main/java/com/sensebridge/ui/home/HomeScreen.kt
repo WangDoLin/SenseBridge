@@ -1,5 +1,6 @@
 package com.sensebridge.ui.home
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -52,6 +53,7 @@ import com.sensebridge.ui.components.BigActionButton
 import com.sensebridge.ui.components.StatusBanner
 import com.sensebridge.ui.navigation.NavRoute
 import com.sensebridge.ui.theme.BgDark
+import com.sensebridge.ui.theme.BorderDark
 import com.sensebridge.ui.theme.P0DangerRed
 import com.sensebridge.ui.theme.P1WarningAmber
 import com.sensebridge.ui.theme.P2AttentionGreen
@@ -118,10 +120,11 @@ fun HomeScreen(
             item {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(16.dp),
+                    shape = RoundedCornerShape(12.dp),
                     colors = CardDefaults.cardColors(
-                        containerColor = if (isRecording) Color(0xFF0F2B1D) else SurfaceCard
-                    )
+                        containerColor = if (isRecording) Color(0xFFDCFCE7) else SurfaceCard
+                    ),
+                    border = BorderStroke(2.dp, if (isRecording) P2AttentionGreen else BorderDark)
                 ) {
                     Row(
                         modifier = Modifier
@@ -179,7 +182,7 @@ fun HomeScreen(
                 }
             }
 
-            // Primary Accessibility Modes
+            // Task Action Buttons (Assistive Modes)
             item {
                 Text(
                     text = "CHẾ ĐỘ TRỢ NĂNG (ĐA NHIỆM)",
@@ -191,7 +194,7 @@ fun HomeScreen(
 
             item {
                 BigActionButton(
-                    title = "👂 Sound Assist",
+                    title = "Sound Assist",
                     subtitle = "Radar âm thanh, còi xe, báo cháy & rung phản hồi",
                     icon = Icons.Default.Hearing,
                     iconTint = P1WarningAmber,
@@ -201,7 +204,7 @@ fun HomeScreen(
 
             item {
                 BigActionButton(
-                    title = "👁️ Vision Assist",
+                    title = "Vision Assist",
                     subtitle = "Quét vật thể, định vị không gian & đọc qua tai nghe",
                     icon = Icons.Default.Visibility,
                     iconTint = PrimaryBlue,
@@ -211,7 +214,7 @@ fun HomeScreen(
 
             item {
                 BigActionButton(
-                    title = "📖 OCR Reader",
+                    title = "OCR Reader",
                     subtitle = "Hướng camera đọc biển hiệu & văn bản tức thì",
                     icon = Icons.Default.TextFields,
                     iconTint = P2AttentionGreen,
@@ -221,7 +224,7 @@ fun HomeScreen(
 
             item {
                 BigActionButton(
-                    title = "🗣️ Communication",
+                    title = "Communication",
                     subtitle = "Thẻ câu trợ giúp & dịch giọng nói hai chiều",
                     icon = Icons.AutoMirrored.Filled.Chat,
                     iconTint = Color(0xFFA855F7),
@@ -231,7 +234,7 @@ fun HomeScreen(
 
             item {
                 BigActionButton(
-                    title = "⚙️ Cài đặt & Độ nhạy",
+                    title = "Cài đặt & Độ nhạy",
                     subtitle = "Bật tắt rung, độ nhạy Decibel & chế độ chạy ngầm",
                     icon = Icons.Default.Settings,
                     iconTint = PrimaryBlue,
@@ -290,8 +293,9 @@ private fun SimulationTestCard(
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = SurfaceCard)
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = SurfaceCard),
+        border = BorderStroke(2.dp, BorderDark)
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
@@ -306,7 +310,7 @@ private fun SimulationTestCard(
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = "⚡ THỬ NGHIỆM PHẢN HỒI RUNG ĐIỆN THOẠI",
+                    text = "THỬ NGHIỆM PHẢN HỒI RUNG ĐIỆN THOẠI",
                     style = MaterialTheme.typography.titleMedium,
                     color = PrimaryBlue
                 )
@@ -320,12 +324,14 @@ private fun SimulationTestCard(
             // Huge Loud Noise Test Button
             Button(
                 onClick = onSimulateLoudNoise,
+                shape = RoundedCornerShape(8.dp),
+                border = BorderStroke(1.5.dp, BorderDark),
                 colors = ButtonDefaults.buttonColors(containerColor = P0DangerRed),
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(48.dp)
             ) {
-                Text("⚠️ THỬ TIẾNG ĐỘNG LỚN (88 dB - RUNG MẠNH SOS)", style = MaterialTheme.typography.labelLarge)
+                Text("THỬ TIẾNG ĐỘNG LỚN (88 dB - RUNG MẠNH SOS)", style = MaterialTheme.typography.labelLarge)
             }
 
             Row(
@@ -334,6 +340,8 @@ private fun SimulationTestCard(
             ) {
                 Button(
                     onClick = onSimulateHorn,
+                    shape = RoundedCornerShape(8.dp),
+                    border = BorderStroke(1.5.dp, BorderDark),
                     colors = ButtonDefaults.buttonColors(containerColor = P0DangerRed),
                     modifier = Modifier.weight(1f)
                 ) {
@@ -342,6 +350,8 @@ private fun SimulationTestCard(
 
                 Button(
                     onClick = onSimulateFireAlarm,
+                    shape = RoundedCornerShape(8.dp),
+                    border = BorderStroke(1.5.dp, BorderDark),
                     colors = ButtonDefaults.buttonColors(containerColor = P0DangerRed),
                     modifier = Modifier.weight(1f)
                 ) {
@@ -355,6 +365,8 @@ private fun SimulationTestCard(
             ) {
                 Button(
                     onClick = onSimulatePerson,
+                    shape = RoundedCornerShape(8.dp),
+                    border = BorderStroke(1.5.dp, BorderDark),
                     colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue),
                     modifier = Modifier.weight(1f)
                 ) {
@@ -363,6 +375,8 @@ private fun SimulationTestCard(
 
                 Button(
                     onClick = onSimulateDoorbell,
+                    shape = RoundedCornerShape(8.dp),
+                    border = BorderStroke(1.5.dp, BorderDark),
                     colors = ButtonDefaults.buttonColors(containerColor = P2AttentionGreen),
                     modifier = Modifier.weight(1f)
                 ) {
@@ -384,8 +398,9 @@ private fun EventHistoryItem(event: SenseEvent) {
 
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = SurfaceCard)
+        shape = RoundedCornerShape(10.dp),
+        colors = CardDefaults.cardColors(containerColor = SurfaceCard),
+        border = BorderStroke(1.5.dp, BorderDark)
     ) {
         Row(
             modifier = Modifier

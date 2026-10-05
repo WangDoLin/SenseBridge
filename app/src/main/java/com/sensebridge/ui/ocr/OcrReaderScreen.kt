@@ -1,10 +1,13 @@
 package com.sensebridge.ui.ocr
 
 import androidx.camera.view.PreviewView
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -16,6 +19,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.TextFields
 import androidx.compose.material3.Button
@@ -39,11 +43,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.sensebridge.ui.theme.BgDark
+import com.sensebridge.ui.theme.BorderDark
 import com.sensebridge.ui.theme.P2AttentionGreen
 import com.sensebridge.ui.theme.PrimaryBlue
 import com.sensebridge.ui.theme.SurfaceCard
@@ -57,13 +63,18 @@ fun OcrReaderScreen(
     viewModel: OcrReaderViewModel,
     onBack: () -> Unit
 ) {
-    val lifecycleOwner = LocalLifecycleOwner.current
     val context = LocalContext.current
-    val previewView = remember { PreviewView(context) }
+    val lifecycleOwner = LocalLifecycleOwner.current
 
+    val lastReadText by viewModel.lastReadText.collectAsState()
     val isReading by viewModel.isReading.collectAsState()
     val isCameraReady by viewModel.isCameraReady.collectAsState()
-    val lastReadText by viewModel.lastReadText.collectAsState()
+
+    val previewView = remember {
+        PreviewView(context).apply {
+            implementationMode = PreviewView.ImplementationMode.COMPATIBLE
+        }
+    }
 
     DisposableEffect(lifecycleOwner) {
         viewModel.bindCamera(lifecycleOwner, previewView)
@@ -76,7 +87,7 @@ fun OcrReaderScreen(
         containerColor = BgDark,
         topBar = {
             TopAppBar(
-                title = { Text("OCR Reader (Đọc văn bản)") },
+                title = { Text("OCR Reader (Đọc biển hiệu & văn bản)") },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(
@@ -106,8 +117,9 @@ fun OcrReaderScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(260.dp)
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(SurfaceCard),
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(SurfaceCard)
+                    .border(2.dp, BorderDark, RoundedCornerShape(12.dp)),
                 contentAlignment = Alignment.Center
             ) {
                 AndroidView(
@@ -139,10 +151,11 @@ fun OcrReaderScreen(
                     .fillMaxWidth()
                     .weight(1f, fill = false)
                     .padding(vertical = 12.dp),
-                shape = RoundedCornerShape(16.dp),
+                shape = RoundedCornerShape(12.dp),
                 colors = CardDefaults.cardColors(
-                    containerColor = if (lastReadText != null) P2AttentionGreen.copy(alpha = 0.15f) else SurfaceCard
-                )
+                    containerColor = if (lastReadText != null) Color(0xFFDCFCE7) else SurfaceCard
+                ),
+                border = BorderStroke(2.dp, BorderDark)
             ) {
                 Column(
                     modifier = Modifier
@@ -170,17 +183,18 @@ fun OcrReaderScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(72.dp),
-                shape = RoundedCornerShape(16.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = P2AttentionGreen)
+                shape = RoundedCornerShape(12.dp),
+                border = BorderStroke(2.dp, BorderDark),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFA7F3D0))
             ) {
                 if (isReading) {
-                    CircularProgressIndicator(color = BgDark, modifier = Modifier.size(28.dp))
+                    CircularProgressIndicator(color = TextPrimary, modifier = Modifier.size(28.dp))
                     Spacer(modifier = Modifier.size(10.dp))
-                    Text("ĐANG QUÉT CHỮ...", style = MaterialTheme.typography.titleLarge, color = BgDark)
+                    Text("ĐANG QUÉT CHỮ...", style = MaterialTheme.typography.titleLarge, color = TextPrimary)
                 } else {
-                    Icon(imageVector = Icons.Default.TextFields, contentDescription = null, tint = BgDark, modifier = Modifier.size(28.dp))
+                    Icon(imageVector = Icons.Default.TextFields, contentDescription = null, tint = TextPrimary, modifier = Modifier.size(28.dp))
                     Spacer(modifier = Modifier.size(10.dp))
-                    Text("CHỤP & ĐỌC VĂN BẢN", style = MaterialTheme.typography.titleLarge, color = BgDark)
+                    Text("CHỤP & ĐỌC VĂN BẢN", style = MaterialTheme.typography.titleLarge, color = TextPrimary)
                 }
             }
         }

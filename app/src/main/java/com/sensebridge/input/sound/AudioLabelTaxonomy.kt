@@ -24,7 +24,7 @@ enum class SoundGroup(
         "car_horn",
         setOf("Vehicle horn, car horn, honking", "Toot", "Air horn, truck horn"),
         0.30f, PriorityLevel.CRITICAL_P0,
-        "🚗 Còi xe", "Cảnh báo, có tiếng còi xe!"
+        "Còi xe", "Cảnh báo, có tiếng còi xe!"
     ),
     SIREN(
         "siren",
@@ -33,68 +33,68 @@ enum class SoundGroup(
             "Ambulance (siren)", "Fire engine, fire truck (siren)", "Emergency vehicle"
         ),
         0.30f, PriorityLevel.CRITICAL_P0,
-        "🚑 Còi xe ưu tiên", "Cảnh báo, có còi xe ưu tiên đến gần!"
+        "Còi xe ưu tiên", "Cảnh báo, có còi xe ưu tiên đến gần!"
     ),
     FIRE_ALARM(
         "fire_alarm",
         setOf("Smoke detector, smoke alarm", "Fire alarm"),
         0.30f, PriorityLevel.CRITICAL_P0,
-        "🔥 Chuông báo cháy", "Nguy hiểm, chuông báo cháy đang reo!"
+        "Chuông báo cháy", "Nguy hiểm, chuông báo cháy đang reo!"
     ),
     GLASS_BREAK(
         "glass_break",
         // "Glass" is excluded on purpose: in AudioSet it also covers clinking dishes/glasses
         setOf("Shatter", "Smash, crash", "Breaking"),
         0.40f, PriorityLevel.CRITICAL_P0,
-        "💥 Tiếng vỡ / va chạm", "Cảnh báo, có tiếng đồ vỡ hoặc va chạm mạnh!"
+        "Tiếng vỡ / va chạm", "Cảnh báo, có tiếng đồ vỡ hoặc va chạm mạnh!"
     ),
     EXPLOSION(
         "explosion",
         setOf("Explosion", "Gunshot, gunfire", "Boom"),
         0.40f, PriorityLevel.CRITICAL_P0,
-        "💣 Tiếng nổ", "Nguy hiểm, có tiếng nổ lớn!"
+        "Tiếng nổ", "Nguy hiểm, có tiếng nổ lớn!"
     ),
     SCREAM(
         "scream",
         setOf("Screaming"),
         0.40f, PriorityLevel.CRITICAL_P0,
-        "😱 Tiếng la hét", "Cảnh báo, có người đang la hét!"
+        "Tiếng la hét", "Cảnh báo, có người đang la hét!"
     ),
     CAR_ALARM(
         "car_alarm",
         setOf("Car alarm"),
         0.35f, PriorityLevel.WARNING_P1,
-        "🚨 Báo động xe", "Có tiếng báo động xe."
+        "Báo động xe", "Có tiếng báo động xe."
     ),
     BABY_CRY(
         "baby_cry",
         setOf("Baby cry, infant cry"),
         0.35f, PriorityLevel.WARNING_P1,
-        "👶 Em bé khóc", "Có tiếng em bé đang khóc."
+        "Em bé khóc", "Có tiếng em bé đang khóc."
     ),
     DOORBELL(
         "doorbell",
         setOf("Doorbell", "Ding-dong"),
         0.35f, PriorityLevel.ATTENTION_P2,
-        "🔔 Chuông cửa", "Có tiếng chuông cửa."
+        "Chuông cửa", "Có tiếng chuông cửa."
     ),
     KNOCK(
         "knock",
         setOf("Knock"),
         0.40f, PriorityLevel.ATTENTION_P2,
-        "🚪 Gõ cửa", "Có người gõ cửa."
+        "Gõ cửa", "Có người gõ cửa."
     ),
     PHONE_RING(
         "phone_ring",
         setOf("Telephone bell ringing", "Ringtone", "Alarm clock"),
         0.40f, PriorityLevel.ATTENTION_P2,
-        "📞 Chuông điện thoại", "Có chuông điện thoại hoặc báo thức."
+        "Chuông điện thoại", "Có chuông điện thoại hoặc báo thức."
     ),
     DOG_BARK(
         "dog_bark",
         setOf("Bark", "Bow-wow"),
         0.40f, PriorityLevel.INFO_P3,
-        "🐕 Chó sủa", "Có tiếng chó sủa gần đây."
+        "Chó sủa", "Có tiếng chó sủa gần đây."
     );
 
     companion object {

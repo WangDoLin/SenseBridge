@@ -30,6 +30,7 @@ import com.sensebridge.ui.theme.TextSecondary
 
 /**
  * Large tactile action button compliant with accessibility standards (target height > 64dp).
+ * Styled with Lumina Neo-Brutalist borders and crisp corners.
  */
 @Composable
 fun BigActionButton(
@@ -48,11 +49,11 @@ fun BigActionButton(
             .semantics {
                 contentDescription = "$title, $subtitle"
             },
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
             containerColor = SurfaceCard
         ),
-        border = BorderStroke(1.5.dp, BorderDark)
+        border = BorderStroke(2.dp, BorderDark)
     ) {
         Row(
             modifier = Modifier

@@ -6,6 +6,7 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -90,7 +91,8 @@ private fun AlertFlashContent(title: String, message: String) {
         modifier = Modifier
             .padding(24.dp)
             // Solid card keeps text contrast constant while the coloured field pulses behind it
-            .background(BgDark.copy(alpha = CARD_ALPHA), RoundedCornerShape(24.dp))
+            .background(com.sensebridge.ui.theme.SurfaceCard.copy(alpha = CARD_ALPHA), RoundedCornerShape(16.dp))
+            .border(3.dp, com.sensebridge.ui.theme.BorderDark, RoundedCornerShape(16.dp))
             .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center

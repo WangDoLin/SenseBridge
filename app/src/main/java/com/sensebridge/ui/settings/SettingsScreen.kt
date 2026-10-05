@@ -1,5 +1,6 @@
 package com.sensebridge.ui.settings
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -37,9 +38,12 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.sensebridge.ui.theme.BgDark
+import com.sensebridge.ui.theme.BorderDark
 import com.sensebridge.ui.theme.P0DangerRed
 import com.sensebridge.ui.theme.P1WarningAmber
 import com.sensebridge.ui.theme.P2AttentionGreen
@@ -64,7 +68,7 @@ fun SettingsScreen(
         containerColor = BgDark,
         topBar = {
             TopAppBar(
-                title = { Text("Cài đặt hệ thống") },
+                title = { Text("Cài đặt & Độ nhạy") },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(
@@ -86,12 +90,12 @@ fun SettingsScreen(
                 .fillMaxSize()
                 .padding(innerPadding)
                 .padding(horizontal = 20.dp),
-            verticalArrangement = Arrangement.spacedBy(18.dp)
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Background Protection Section
+            // Background Monitoring Master Switch
             item {
                 Text(
-                    text = "BẢO VỆ CHẠY NGẦM & ĐA TÁC VỤ",
+                    text = "CHẾ ĐỘ NỀN & BẢO VỆ LIÊN TỤC",
                     style = MaterialTheme.typography.labelLarge,
                     color = TextMuted,
                     modifier = Modifier.padding(top = 8.dp)
@@ -100,7 +104,7 @@ fun SettingsScreen(
 
             item {
                 SettingSwitchCard(
-                    title = "🛡️ Chạy ngầm khi thoát ứng dụng",
+                    title = "Chạy ngầm khi thoát ứng dụng",
                     subtitle = "Duy trì quét âm thanh & rung ngay cả khi tắt màn hình hoặc chuyển sang ứng dụng khác",
                     checked = isBackgroundEnabled,
                     onCheckedChange = { viewModel.toggleBackgroundMonitoring(context) }
@@ -133,12 +137,13 @@ fun SettingsScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(50.dp),
-                    shape = RoundedCornerShape(12.dp),
+                    shape = RoundedCornerShape(10.dp),
+                    border = BorderStroke(2.dp, BorderDark),
                     colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue)
                 ) {
-                    Icon(imageVector = Icons.Default.Vibration, contentDescription = null)
+                    Icon(imageVector = Icons.Default.Vibration, contentDescription = null, tint = SurfaceCard)
                     Spacer(modifier = Modifier.padding(4.dp))
-                    Text("THỬ RUNG ĐIỆN THOẠI NGAY", style = MaterialTheme.typography.labelLarge)
+                    Text("THỬ RUNG ĐIỆN THOẠI NGAY", style = MaterialTheme.typography.labelLarge, color = SurfaceCard)
                 }
             }
 
@@ -166,8 +171,9 @@ fun SettingsScreen(
             item {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = SurfaceCard)
+                    shape = RoundedCornerShape(12.dp),
+                    colors = CardDefaults.cardColors(containerColor = SurfaceCard),
+                    border = BorderStroke(2.dp, BorderDark)
                 ) {
                     Column(modifier = Modifier.padding(18.dp)) {
                         Text(
@@ -199,8 +205,9 @@ fun SettingsScreen(
             item {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = P1WarningAmber.copy(alpha = 0.12f))
+                    shape = RoundedCornerShape(12.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFFFEF3C7)),
+                    border = BorderStroke(2.dp, BorderDark)
                 ) {
                     Row(
                         modifier = Modifier.padding(16.dp),
@@ -237,10 +244,11 @@ fun SettingsScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(52.dp),
-                    shape = RoundedCornerShape(14.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = SurfaceCard)
+                    shape = RoundedCornerShape(10.dp),
+                    border = BorderStroke(2.dp, BorderDark),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFE0E0))
                 ) {
-                    Text("XÓA LỊCH SỬ SỰ KIỆN", color = P0DangerRed)
+                    Text("XÓA LỊCH SỬ SỰ KIỆN", color = P0DangerRed, fontWeight = FontWeight.Bold)
                 }
                 Spacer(modifier = Modifier.height(16.dp))
             }
@@ -257,8 +265,9 @@ private fun SettingSwitchCard(
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = SurfaceCard)
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = SurfaceCard),
+        border = BorderStroke(2.dp, BorderDark)
     ) {
         Row(
             modifier = Modifier

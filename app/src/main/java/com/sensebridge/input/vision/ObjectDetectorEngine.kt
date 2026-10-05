@@ -128,7 +128,7 @@ class ObjectDetectorEngine @Inject constructor(
                             SenseEvent(
                                 source = SensorySource.VISION_OBJECT_DETECTOR,
                                 label = "locate_${target.label}",
-                                displayTitle = "🎯 Đã tìm thấy: ${target.vietnameseName}",
+                                displayTitle = "Đã tìm thấy: ${target.vietnameseName}",
                                 spokenText = target.guidanceInstruction,
                                 confidence = target.confidence,
                                 priority = PriorityLevel.ATTENTION_P2,

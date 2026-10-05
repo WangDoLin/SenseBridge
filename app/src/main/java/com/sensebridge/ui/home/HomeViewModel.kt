@@ -54,7 +54,7 @@ class HomeViewModel @Inject constructor(
             SenseEvent(
                 source = SensorySource.AUDIO_CLASSIFIER,
                 label = "loud_sound_p0",
-                displayTitle = "⚠️ TIẾNG ĐỘNG RẤT LỚN (88 dB)",
+                displayTitle = "TIẾNG ĐỘNG RẤT LỚN (88 dB)",
                 spokenText = "Cảnh báo nguy hiểm, phát hiện tiếng động rất lớn xung quanh!",
                 confidence = 0.98f,
                 priority = PriorityLevel.CRITICAL_P0,

@@ -1,6 +1,8 @@
 package com.sensebridge.ui.communication
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -51,6 +53,7 @@ import androidx.compose.ui.unit.dp
 import com.sensebridge.core.model.PriorityLevel
 import com.sensebridge.data.local.entity.SavedPhraseEntity
 import com.sensebridge.ui.theme.BgDark
+import com.sensebridge.ui.theme.BorderDark
 import com.sensebridge.ui.theme.P0DangerRed
 import com.sensebridge.ui.theme.P1WarningAmber
 import com.sensebridge.ui.theme.P2AttentionGreen
@@ -106,10 +109,11 @@ fun CommunicationScreen(
                 Spacer(modifier = Modifier.height(4.dp))
                 Card(
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(16.dp),
+                    shape = RoundedCornerShape(12.dp),
                     colors = CardDefaults.cardColors(
                         containerColor = if (isListening) P1WarningAmber.copy(alpha = 0.15f) else SurfaceCard
-                    )
+                    ),
+                    border = BorderStroke(2.dp, BorderDark)
                 ) {
                     Column(modifier = Modifier.padding(18.dp)) {
                         Row(
@@ -160,19 +164,22 @@ fun CommunicationScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(64.dp),
-                    shape = RoundedCornerShape(16.dp),
+                    shape = RoundedCornerShape(10.dp),
+                    border = BorderStroke(2.dp, BorderDark),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = if (isListening) P0DangerRed else PrimaryBlue
                     )
                 ) {
                     Icon(
                         imageVector = if (isListening) Icons.Default.Stop else Icons.Default.Mic,
-                        contentDescription = null
+                        contentDescription = null,
+                        tint = SurfaceCard
                     )
                     Spacer(modifier = Modifier.size(10.dp))
                     Text(
                         text = if (isListening) "DỪNG NGHE" else "NHẤN ĐỂ NGHE NGƯỜI ĐỐI DIỆN",
-                        style = MaterialTheme.typography.titleMedium
+                        style = MaterialTheme.typography.titleMedium,
+                        color = SurfaceCard
                     )
                 }
             }
@@ -181,8 +188,9 @@ fun CommunicationScreen(
             item {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = SurfaceCard)
+                    shape = RoundedCornerShape(12.dp),
+                    colors = CardDefaults.cardColors(containerColor = SurfaceCard),
+                    border = BorderStroke(2.dp, BorderDark)
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Text(
@@ -196,10 +204,10 @@ fun CommunicationScreen(
                             onValueChange = { customText = it },
                             placeholder = { Text("Nhập câu bạn muốn nói...", color = TextMuted) },
                             modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(12.dp),
+                            shape = RoundedCornerShape(10.dp),
                             colors = OutlinedTextFieldDefaults.colors(
                                 focusedBorderColor = PrimaryBlue,
-                                unfocusedBorderColor = TextMuted.copy(alpha = 0.3f),
+                                unfocusedBorderColor = BorderDark.copy(alpha = 0.3f),
                                 focusedTextColor = TextPrimary,
                                 unfocusedTextColor = TextPrimary
                             ),
@@ -218,38 +226,48 @@ fun CommunicationScreen(
                         ) {
                             Button(
                                 onClick = {
-                                    viewModel.speakCustomText(customText)
+                                    if (customText.isNotBlank()) {
+                                        viewModel.speakCustomText(customText)
+                                    }
                                 },
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .height(48.dp),
                                 enabled = customText.isNotBlank(),
-                                modifier = Modifier.weight(1f),
-                                shape = RoundedCornerShape(12.dp),
+                                shape = RoundedCornerShape(8.dp),
+                                border = BorderStroke(1.5.dp, BorderDark),
                                 colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue)
                             ) {
                                 Icon(
                                     imageVector = Icons.AutoMirrored.Filled.VolumeUp,
                                     contentDescription = null,
-                                    modifier = Modifier.size(18.dp)
+                                    modifier = Modifier.size(18.dp),
+                                    tint = SurfaceCard
                                 )
                                 Spacer(modifier = Modifier.width(6.dp))
-                                Text("Phát âm")
+                                Text("Phát âm thanh", color = SurfaceCard)
                             }
+
                             Button(
                                 onClick = {
-                                    viewModel.addCustomPhrase(customText)
-                                    customText = ""
+                                    if (customText.isNotBlank()) {
+                                        viewModel.addCustomPhrase(customText)
+                                        customText = ""
+                                    }
                                 },
                                 enabled = customText.isNotBlank(),
-                                shape = RoundedCornerShape(12.dp),
+                                shape = RoundedCornerShape(8.dp),
+                                border = BorderStroke(1.5.dp, BorderDark),
                                 colors = ButtonDefaults.buttonColors(containerColor = P2AttentionGreen)
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.Add,
                                     contentDescription = null,
                                     modifier = Modifier.size(18.dp),
-                                    tint = BgDark
+                                    tint = SurfaceCard
                                 )
                                 Spacer(modifier = Modifier.width(4.dp))
-                                Text("+ Lưu thẻ", color = BgDark)
+                                Text("+ Lưu thẻ", color = SurfaceCard)
                             }
                         }
                     }
@@ -295,8 +313,9 @@ private fun AacPhraseCard(
         modifier = Modifier
             .fillMaxWidth()
             .heightIn(min = 72.dp),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = SurfaceCard)
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = SurfaceCard),
+        border = BorderStroke(2.dp, BorderDark)
     ) {
         Row(
             modifier = Modifier
@@ -327,7 +346,8 @@ private fun AacPhraseCard(
                 Box(
                     modifier = Modifier
                         .size(42.dp)
-                        .background(buttonColor.copy(alpha = 0.2f), CircleShape),
+                        .background(buttonColor.copy(alpha = 0.15f), RoundedCornerShape(8.dp))
+                        .border(1.5.dp, BorderDark, RoundedCornerShape(8.dp)),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(

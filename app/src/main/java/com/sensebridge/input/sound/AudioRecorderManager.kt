@@ -239,7 +239,7 @@ class AudioRecorderManager @Inject constructor(
             SenseEvent(
                 source = SensorySource.AUDIO_CLASSIFIER,
                 label = LOUD_IMPACT_LABEL,
-                displayTitle = "⚠️ Tiếng động rất lớn (${decibels.toInt()} dB)",
+                displayTitle = "Tiếng động rất lớn (${decibels.toInt()} dB)",
                 spokenText = "Cảnh báo, có tiếng động lớn bất thường xung quanh bạn!",
                 confidence = LOUD_IMPACT_CONFIDENCE,
                 priority = PriorityLevel.WARNING_P1

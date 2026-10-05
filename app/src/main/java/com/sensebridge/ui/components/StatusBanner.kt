@@ -52,8 +52,9 @@ fun StatusBanner(
 ) {
     Card(
         modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = SurfaceCard)
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = SurfaceCard),
+        border = androidx.compose.foundation.BorderStroke(2.dp, com.sensebridge.ui.theme.BorderDark)
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
