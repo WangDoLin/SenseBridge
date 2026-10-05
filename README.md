@@ -1,6 +1,6 @@
 # SenseBridge - On-Device Multimodal Accessibility & Situational Cognitive AI Platform
 
-[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
+[![License](https://img.shields.io/badge/License-Non--Commercial_(Medical_%26_Charity_Exempt)-blue.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/Platform-Android_8.0%2B-green.svg)](https://developer.android.com)
 [![Kotlin](https://img.shields.io/badge/Kotlin-2.0.0-purple.svg)](https://kotlinlang.org)
 [![TensorFlow Lite](https://img.shields.io/badge/AI-TensorFlow_Lite-orange.svg)](https://www.tensorflow.org/lite)
@@ -238,20 +238,11 @@ To enable generative natural language dialogue:
 
 ## 7. License
 
-SenseBridge is distributed under the **[Apache License 2.0](LICENSE)**. 
+SenseBridge is licensed under the **[SenseBridge Non-Commercial (Healthcare & Humanitarian Exception) License v1.0](LICENSE)**.
 
-```
-Copyright 2026 SenseBridge Contributors (WangDoLin)
+* **Free for Personal, Academic & Research Use**: You are free to use, modify, study, and distribute this software for personal, educational, scientific research, and non-commercial community purposes.
+* **Commercial Use Restriction**: General commercial exploitation, proprietary sublicensing, or monetization is strictly prohibited without written consent, **with two explicit exceptions**:
+  1. **Healthcare & Medical Services**: Hospitals, clinics, rehabilitation facilities, medical practitioners, and assistive healthcare providers are explicitly authorized to use, integrate, and deploy this software royalty-free for patient diagnosis, caregiving, safety, and rehabilitation.
+  2. **Charitable & Philanthropic Causes**: Recognized non-profit organizations, humanitarian initiatives, and donation-funded public welfare campaigns are explicitly authorized to use, fundraise with, and distribute this software for community accessibility and social welfare programs.
 
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-```
+For complete legal terms and conditions, please consult the [LICENSE](LICENSE) file.
