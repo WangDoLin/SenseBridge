@@ -14,8 +14,8 @@ android {
         applicationId = "com.sensebridge"
         minSdk = 26
         targetSdk = 34
-        versionCode = 7
-        versionName = "1.7.0-alpha"
+        versionCode = 8
+        versionName = "1.8.0-alpha"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
