@@ -33,6 +33,10 @@ class TextToSpeechManager @Inject constructor(
     private val _isReady = MutableStateFlow(false)
     val isReady: StateFlow<Boolean> = _isReady.asStateFlow()
 
+    private var currentPitch: Float = DEFAULT_PITCH
+    private var currentSpeechRate: Float = DEFAULT_SPEECH_RATE
+    private var currentPersona: VoicePersona = VoicePersona.DEFAULT
+
     init {
         tts = TextToSpeech(context, this)
     }
@@ -47,13 +51,81 @@ class TextToSpeechManager @Inject constructor(
                 tts?.language = Locale.getDefault()
             }
 
-            tts?.setSpeechRate(DEFAULT_SPEECH_RATE)
-            tts?.setPitch(DEFAULT_PITCH)
+            tts?.setSpeechRate(currentSpeechRate)
+            tts?.setPitch(currentPitch)
             _isReady.value = true
-            Log.i(TAG, "TextToSpeech initialized successfully.")
+            Log.i(TAG, "TextToSpeech initialized successfully with pitch $currentPitch, rate $currentSpeechRate.")
         } else {
             Log.e(TAG, "Failed to initialize TextToSpeech. Status code: $status")
             _isReady.value = false
+        }
+    }
+
+    /**
+     * Sets acoustic pitch (F0 vocal fundamental frequency).
+     * @param pitch Value in range [0.5, 2.0] where 1.0 is default, <1.0 is deeper/male, >1.0 is higher/female.
+     */
+    fun setPitch(pitch: Float) {
+        val clamped = pitch.coerceIn(0.5f, 2.0f)
+        currentPitch = clamped
+        tts?.setPitch(clamped)
+    }
+
+    /**
+     * Sets verbal cadence / speech rate.
+     * @param rate Value in range [0.5, 2.5] where 1.0 is normal speed.
+     */
+    fun setSpeechRate(rate: Float) {
+        val clamped = rate.coerceIn(0.5f, 2.5f)
+        currentSpeechRate = clamped
+        tts?.setSpeechRate(clamped)
+    }
+
+    /**
+     * Applies a predefined voice persona.
+     */
+    fun applyPersona(persona: VoicePersona) {
+        currentPersona = persona
+        setPitch(persona.pitch)
+        setSpeechRate(persona.speechRate)
+    }
+
+    fun getPitch(): Float = currentPitch
+    fun getSpeechRate(): Float = currentSpeechRate
+    fun getPersona(): VoicePersona = currentPersona
+
+    /**
+     * Speaks a sample sentence to let the user preview the tuned voice.
+     */
+    fun speakSample() {
+        speak(VoicePersona.SAMPLE_PHRASE, PriorityLevel.ATTENTION_P2)
+    }
+
+    /**
+     * Returns names of voices available on the device TTS engine.
+     */
+    fun getAvailableVoices(): List<String> {
+        return try {
+            tts?.voices?.map { it.name } ?: emptyList()
+        } catch (e: Exception) {
+            emptyList()
+        }
+    }
+
+    /**
+     * Assigns a specific system voice profile if supported.
+     */
+    fun selectVoiceByName(voiceName: String): Boolean {
+        return try {
+            val matching = tts?.voices?.firstOrNull { it.name == voiceName }
+            if (matching != null) {
+                tts?.voice = matching
+                true
+            } else {
+                false
+            }
+        } catch (e: Exception) {
+            false
         }
     }
 

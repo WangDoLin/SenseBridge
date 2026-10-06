@@ -10,6 +10,8 @@ import com.sensebridge.core.model.PriorityLevel
 import com.sensebridge.core.monitoring.MonitoringCoordinator
 import com.sensebridge.data.repository.UserPreferencesRepository
 import com.sensebridge.input.sound.DecibelEnergyGate
+import com.sensebridge.output.audio.TextToSpeechManager
+import com.sensebridge.output.audio.VoicePersona
 import com.sensebridge.output.haptic.HapticManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -25,7 +27,8 @@ class SettingsViewModel @Inject constructor(
     private val eventEngine: EventEngine,
     private val monitoringCoordinator: MonitoringCoordinator,
     private val preferencesRepository: UserPreferencesRepository,
-    private val hapticManager: HapticManager
+    private val hapticManager: HapticManager,
+    private val textToSpeechManager: TextToSpeechManager
 ) : ViewModel() {
 
     val config: StateFlow<OutputConfiguration> = dispatcher.config
@@ -34,10 +37,25 @@ class SettingsViewModel @Inject constructor(
     private val _thresholdDb = MutableStateFlow(energyGate.thresholdDb)
     val thresholdDb: StateFlow<Double> = _thresholdDb.asStateFlow()
 
+    private val _voicePitch = MutableStateFlow(1.0f)
+    val voicePitch: StateFlow<Float> = _voicePitch.asStateFlow()
+
+    private val _voiceSpeechRate = MutableStateFlow(1.0f)
+    val voiceSpeechRate: StateFlow<Float> = _voiceSpeechRate.asStateFlow()
+
+    private val _selectedPersona = MutableStateFlow(VoicePersona.DEFAULT)
+    val selectedPersona: StateFlow<VoicePersona> = _selectedPersona.asStateFlow()
+
     init {
         viewModelScope.launch {
             preferencesRepository.userPreferencesFlow.collect { prefs ->
                 _thresholdDb.value = prefs.thresholdDb
+                _voicePitch.value = prefs.voicePitch
+                _voiceSpeechRate.value = prefs.voiceSpeechRate
+                val persona = VoicePersona.fromId(prefs.voicePersona)
+                _selectedPersona.value = persona
+                textToSpeechManager.setPitch(prefs.voicePitch)
+                textToSpeechManager.setSpeechRate(prefs.voiceSpeechRate)
             }
         }
     }
@@ -69,6 +87,38 @@ class SettingsViewModel @Inject constructor(
 
     fun testHapticVibration() {
         hapticManager.trigger(PriorityLevel.CRITICAL_P0)
+    }
+
+    fun setVoicePersona(persona: VoicePersona) {
+        _selectedPersona.value = persona
+        _voicePitch.value = persona.pitch
+        _voiceSpeechRate.value = persona.speechRate
+        textToSpeechManager.applyPersona(persona)
+        viewModelScope.launch {
+            preferencesRepository.updateVoicePersona(persona.id)
+            preferencesRepository.updateVoicePitch(persona.pitch)
+            preferencesRepository.updateVoiceSpeechRate(persona.speechRate)
+        }
+    }
+
+    fun setVoicePitch(pitch: Float) {
+        _voicePitch.value = pitch
+        textToSpeechManager.setPitch(pitch)
+        viewModelScope.launch {
+            preferencesRepository.updateVoicePitch(pitch)
+        }
+    }
+
+    fun setVoiceSpeechRate(rate: Float) {
+        _voiceSpeechRate.value = rate
+        textToSpeechManager.setSpeechRate(rate)
+        viewModelScope.launch {
+            preferencesRepository.updateVoiceSpeechRate(rate)
+        }
+    }
+
+    fun testVoiceSpeech() {
+        textToSpeechManager.speakSample()
     }
 
     fun clearAllLogs() {

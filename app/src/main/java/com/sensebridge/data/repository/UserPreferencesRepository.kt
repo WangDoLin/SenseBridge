@@ -7,6 +7,8 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.doublePreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
+import androidx.datastore.preferences.core.floatPreferencesKey
+import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
@@ -24,7 +26,10 @@ data class UserPreferences(
     val enableVoice: Boolean = true,
     val enableVisual: Boolean = true,
     val thresholdDb: Double = 58.0,
-    val isBackgroundMonitoringEnabled: Boolean = true
+    val isBackgroundMonitoringEnabled: Boolean = true,
+    val voicePitch: Float = 1.0f,
+    val voiceSpeechRate: Float = 1.0f,
+    val voicePersona: String = "DEFAULT"
 )
 
 private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "sensebridge_preferences")
@@ -42,6 +47,9 @@ class UserPreferencesRepository @Inject constructor(
         val KEY_ENABLE_VISUAL = booleanPreferencesKey("enable_visual")
         val KEY_THRESHOLD_DB = doublePreferencesKey("threshold_db")
         val KEY_BACKGROUND_MONITORING = booleanPreferencesKey("background_monitoring")
+        val KEY_VOICE_PITCH = floatPreferencesKey("voice_pitch")
+        val KEY_VOICE_SPEECH_RATE = floatPreferencesKey("voice_speech_rate")
+        val KEY_VOICE_PERSONA = stringPreferencesKey("voice_persona")
     }
 
     val userPreferencesFlow: Flow<UserPreferences> = context.dataStore.data
@@ -58,7 +66,10 @@ class UserPreferencesRepository @Inject constructor(
                 enableVoice = preferences[KEY_ENABLE_VOICE] ?: true,
                 enableVisual = preferences[KEY_ENABLE_VISUAL] ?: true,
                 thresholdDb = preferences[KEY_THRESHOLD_DB] ?: 58.0,
-                isBackgroundMonitoringEnabled = preferences[KEY_BACKGROUND_MONITORING] ?: true
+                isBackgroundMonitoringEnabled = preferences[KEY_BACKGROUND_MONITORING] ?: true,
+                voicePitch = preferences[KEY_VOICE_PITCH] ?: 1.0f,
+                voiceSpeechRate = preferences[KEY_VOICE_SPEECH_RATE] ?: 1.0f,
+                voicePersona = preferences[KEY_VOICE_PERSONA] ?: "DEFAULT"
             )
         }
 
@@ -89,6 +100,24 @@ class UserPreferencesRepository @Inject constructor(
     suspend fun updateBackgroundMonitoringEnabled(enabled: Boolean) {
         context.dataStore.edit { preferences ->
             preferences[KEY_BACKGROUND_MONITORING] = enabled
+        }
+    }
+
+    suspend fun updateVoicePitch(pitch: Float) {
+        context.dataStore.edit { preferences ->
+            preferences[KEY_VOICE_PITCH] = pitch
+        }
+    }
+
+    suspend fun updateVoiceSpeechRate(rate: Float) {
+        context.dataStore.edit { preferences ->
+            preferences[KEY_VOICE_SPEECH_RATE] = rate
+        }
+    }
+
+    suspend fun updateVoicePersona(personaId: String) {
+        context.dataStore.edit { preferences ->
+            preferences[KEY_VOICE_PERSONA] = personaId
         }
     }
 }

@@ -404,6 +404,34 @@ SenseBridge circumvents this constraint through an **Exemplar-Based Episodic Arc
 
 *Implementation Reference: [`ContinualLearningEngine.kt`](app/src/main/java/com/sensebridge/core/ai/ContinualLearningEngine.kt).*
 
+### 7.4. Neural Text-To-Speech (TTS), Speaker Embeddings & Voice Cloning Architecture
+Auditory sensory substitution requires speech that sounds natural, clear, and customizable to accommodate different user preferences and hearing loss characteristics (e.g., presbycusis, high-frequency hearing loss).
+
+#### A. Acoustic Modulation (Fundamental Frequency F0 & Cadence)
+Acoustic timbre is modulated in real time via linear frequency scaling and duration transformation:
+
+$$f'_{0}(t) = \alpha \cdot f_0(t) \quad (\alpha \in [0.5, 2.0]), \quad \Delta t' = \frac{\Delta t}{\beta} \quad (\beta \in [0.5, 2.5])$$
+
+* **F0 Pitch $\alpha < 1.0$ (Warm Male)**: Lowers resonant pitch into deeper baritone bands (80–140 Hz), offering higher audibility for users sensitive to high-frequency shrillness.
+* **F0 Pitch $\alpha > 1.0$ (Natural Female / Assistant)**: Elevates pitch into 180–240 Hz bands, yielding crisp formant clarity for outdoor urban navigation.
+* **Cadence $\beta$**: Allows experienced screen-reader users to consume environmental information at up to $2.0\times$ baseline conversational velocity.
+
+#### B. Speaker Embedding (D-Vector Extraction)
+To clone a target individual's voice into the AI platform, the system extracts a 512-dimensional unit-normalized speaker representation from 80-band Mel-Spectrogram acoustic energy statistics:
+
+$$e = \frac{\mathbf{W}_p \cdot \left[ \mu_{\text{mel}}, \sigma_{\text{mel}} \right]^T}{\left\| \mathbf{W}_p \cdot \left[ \mu_{\text{mel}}, \sigma_{\text{mel}} \right]^T \right\|_2} \in \mathbb{R}^{512}$$
+
+This embedding conditions the neural acoustic decoder to emulate the speaker's vocal tract morphology and formant characteristics without altering phonetic speech content.
+
+#### C. End-to-End On-Device Synthesis (VITS & Piper TTS)
+For fully offline, zero-cloud neural voice synthesis:
+1. **Text Frontend**: Normalizes Vietnamese diacritics and converts graphemes to phoneme vectors.
+2. **Variational Generator**: Combines a Posterior Encoder, Normalizing Flows, and Stochastic Duration Predictor to model natural human prosody.
+3. **HiFi-GAN Neural Vocoder**: Reconstructs 22,050 Hz 16-bit PCM waveforms directly from latent representations.
+4. **Edge Deployment**: Checkpoints are fine-tuned on target speaker datasets (50–200 utterances) and exported via ONNX Runtime / INT8 quantization, enabling sub-real-time execution on mobile ARM CPUs.
+
+*Implementation Reference: [`VoicePersona.kt`](app/src/main/java/com/sensebridge/output/audio/VoicePersona.kt), [`TextToSpeechManager.kt`](app/src/main/java/com/sensebridge/output/audio/TextToSpeechManager.kt), and [`train_custom_voice.py`](ml/train_custom_voice.py).*
+
 ---
 
 ## 8. EMBEDDED SYSTEMS ARCHITECTURE & R8 COMPILER OPTIMIZATION

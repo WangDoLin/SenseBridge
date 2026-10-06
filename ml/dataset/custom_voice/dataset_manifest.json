@@ -1,0 +1,77 @@
+{
+  "language": "vi_VN",
+  "sample_rate": 22050,
+  "total_samples": 10,
+  "manifest": [
+    {
+      "id": "sample_01",
+      "text": "Xin chào, tôi là trợ lý ảo SenseBridge luôn đồng hành cùng bạn.",
+      "f0_hz": 168.3,
+      "speaker_embedding_dim": 512,
+      "audio_duration_sec": 2.2
+    },
+    {
+      "id": "sample_02",
+      "text": "Phía trước cách hai mét có bậc tam cấp, vui lòng đi chậm lại.",
+      "f0_hz": 168.3,
+      "speaker_embedding_dim": 512,
+      "audio_duration_sec": 2.2
+    },
+    {
+      "id": "sample_03",
+      "text": "Phát hiện tờ tiền mệnh giá năm trăm nghìn đồng.",
+      "f0_hz": 168.3,
+      "speaker_embedding_dim": 512,
+      "audio_duration_sec": 2.2
+    },
+    {
+      "id": "sample_04",
+      "text": "Xe buýt tuyến số một trăm năm mươi đang tiến vào trạm dừng.",
+      "f0_hz": 168.3,
+      "speaker_embedding_dim": 512,
+      "audio_duration_sec": 2.2
+    },
+    {
+      "id": "sample_05",
+      "text": "Thuốc Paracetamol năm trăm miligam, uống ngày hai lần sau bữa ăn.",
+      "f0_hz": 168.3,
+      "speaker_embedding_dim": 512,
+      "audio_duration_sec": 2.2
+    },
+    {
+      "id": "sample_06",
+      "text": "Cảnh báo, có phương tiện đang bấm còi ở phía bên trái.",
+      "f0_hz": 168.3,
+      "speaker_embedding_dim": 512,
+      "audio_duration_sec": 2.2
+    },
+    {
+      "id": "sample_07",
+      "text": "Lối thoát hiểm khẩn cấp nằm ở hướng mười hai giờ.",
+      "f0_hz": 168.3,
+      "speaker_embedding_dim": 512,
+      "audio_duration_sec": 2.2
+    },
+    {
+      "id": "sample_08",
+      "text": "Đèn tín hiệu giao thông cho người đi bộ đang chuyển sang màu xanh.",
+      "f0_hz": 168.3,
+      "speaker_embedding_dim": 512,
+      "audio_duration_sec": 2.2
+    },
+    {
+      "id": "sample_09",
+      "text": "Môi trường quá tối, tôi đã tự động kích hoạt đèn flash hỗ trợ.",
+      "f0_hz": 168.3,
+      "speaker_embedding_dim": 512,
+      "audio_duration_sec": 2.2
+    },
+    {
+      "id": "sample_10",
+      "text": "Thời tiết hôm nay nắng ráo, nhiệt độ ngoài trời khoảng ba mươi độ C.",
+      "f0_hz": 168.3,
+      "speaker_embedding_dim": 512,
+      "audio_duration_sec": 2.2
+    }
+  ]
+}

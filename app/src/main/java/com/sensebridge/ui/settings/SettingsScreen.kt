@@ -1,6 +1,7 @@
 package com.sensebridge.ui.settings
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -9,10 +10,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Vibration
@@ -22,9 +25,12 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
@@ -42,6 +48,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.sensebridge.output.audio.VoicePersona
 import com.sensebridge.ui.theme.BgDark
 import com.sensebridge.ui.theme.BorderDark
 import com.sensebridge.ui.theme.P0DangerRed
@@ -63,6 +70,9 @@ fun SettingsScreen(
     val config by viewModel.config.collectAsState()
     val isBackgroundEnabled by viewModel.isBackgroundEnabled.collectAsState()
     val thresholdDb by viewModel.thresholdDb.collectAsState()
+    val voicePitch by viewModel.voicePitch.collectAsState()
+    val voiceSpeechRate by viewModel.voiceSpeechRate.collectAsState()
+    val selectedPersona by viewModel.selectedPersona.collectAsState()
 
     Scaffold(
         containerColor = BgDark,
@@ -155,6 +165,131 @@ fun SettingsScreen(
                     checked = config.enableVoice,
                     onCheckedChange = { viewModel.setVoiceEnabled(it) }
                 )
+            }
+
+            // Voice Persona & Acoustic Tuning Card
+            if (config.enableVoice) {
+                item {
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = CardDefaults.cardColors(containerColor = SurfaceCard),
+                        border = BorderStroke(2.dp, BorderDark)
+                    ) {
+                        Column(modifier = Modifier.padding(18.dp)) {
+                            Text(
+                                text = "TÙY BIẾN GIỌNG NÓI AI",
+                                style = MaterialTheme.typography.titleMedium,
+                                color = TextPrimary
+                            )
+                            Text(
+                                text = "Lựa chọn hồ sơ âm sắc hoặc điều chỉnh cao độ (Pitch) & tốc độ đọc theo sở thích cá nhân.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = TextSecondary
+                            )
+                            Spacer(modifier = Modifier.height(14.dp))
+
+                            Text(
+                                text = "Hồ sơ giọng nói:",
+                                style = MaterialTheme.typography.labelMedium,
+                                color = TextPrimary
+                            )
+                            Spacer(modifier = Modifier.height(6.dp))
+
+                            VoicePersona.entries.forEach { persona ->
+                                val isSelected = persona == selectedPersona
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clickable { viewModel.setVoicePersona(persona) }
+                                        .padding(vertical = 4.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    RadioButton(
+                                        selected = isSelected,
+                                        onClick = { viewModel.setVoicePersona(persona) },
+                                        colors = RadioButtonDefaults.colors(selectedColor = PrimaryBlue)
+                                    )
+                                    Spacer(modifier = Modifier.width(6.dp))
+                                    Column {
+                                        Text(
+                                            text = persona.displayNameVi,
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = if (isSelected) PrimaryBlue else TextPrimary
+                                        )
+                                        Text(
+                                            text = persona.descriptionVi,
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = TextSecondary
+                                        )
+                                    }
+                                }
+                            }
+
+                            Spacer(modifier = Modifier.height(12.dp))
+                            HorizontalDivider(color = BorderDark)
+                            Spacer(modifier = Modifier.height(12.dp))
+
+                            Text(
+                                text = "Cao độ giọng (F0 Pitch): ${String.format("%.2f", voicePitch)}x",
+                                style = MaterialTheme.typography.labelMedium,
+                                color = TextPrimary
+                            )
+                            Text(
+                                text = "< 1.0: Trầm ấm (Nam) | > 1.0: Trong trẻo (Nữ)",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = TextSecondary
+                            )
+                            Slider(
+                                value = voicePitch,
+                                onValueChange = { viewModel.setVoicePitch(it) },
+                                valueRange = 0.6f..1.6f,
+                                steps = 9,
+                                colors = SliderDefaults.colors(
+                                    thumbColor = PrimaryBlue,
+                                    activeTrackColor = PrimaryBlue
+                                )
+                            )
+
+                            Spacer(modifier = Modifier.height(8.dp))
+
+                            Text(
+                                text = "Tốc độ đọc (Speed): ${String.format("%.2f", voiceSpeechRate)}x",
+                                style = MaterialTheme.typography.labelMedium,
+                                color = TextPrimary
+                            )
+                            Slider(
+                                value = voiceSpeechRate,
+                                onValueChange = { viewModel.setVoiceSpeechRate(it) },
+                                valueRange = 0.7f..1.5f,
+                                steps = 7,
+                                colors = SliderDefaults.colors(
+                                    thumbColor = PrimaryBlue,
+                                    activeTrackColor = PrimaryBlue
+                                )
+                            )
+
+                            Spacer(modifier = Modifier.height(12.dp))
+
+                            Button(
+                                onClick = { viewModel.testVoiceSpeech() },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(46.dp),
+                                shape = RoundedCornerShape(8.dp),
+                                colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Filled.VolumeUp,
+                                    contentDescription = null,
+                                    tint = SurfaceCard
+                                )
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text("NGHE THỬ GIỌNG NÓI", color = SurfaceCard)
+                            }
+                        }
+                    }
+                }
             }
 
             // Visual Switch
