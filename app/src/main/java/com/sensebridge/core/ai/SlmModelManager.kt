@@ -2,6 +2,7 @@ package com.sensebridge.core.ai
 
 import android.app.ActivityManager
 import android.content.Context
+import android.util.Log
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.io.File
 import javax.inject.Inject
@@ -12,6 +13,7 @@ class SlmModelManager @Inject constructor(
     @ApplicationContext private val context: Context
 ) {
     companion object {
+        private const val TAG = "SlmModelManager"
         const val DEFAULT_MODEL_NAME = "sense_slm.bin"
         const val ALT_MODEL_NAME = "sense_slm.task"
         const val MIN_RECOMMENDED_RAM_MB = 1500L
@@ -58,6 +60,7 @@ class SlmModelManager @Inject constructor(
             }
             if (targetFile.exists() && targetFile.length() > 0) targetFile else null
         } catch (e: Exception) {
+            Log.w(TAG, "Cannot extract model asset: $assetName", e)
             null
         }
     }
