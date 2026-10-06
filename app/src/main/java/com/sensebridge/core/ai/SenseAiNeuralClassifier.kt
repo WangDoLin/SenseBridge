@@ -27,7 +27,7 @@ class SenseAiNeuralClassifier @Inject constructor(
         private const val MODEL_FILENAME = "sense_ai_neural_model.tflite"
         private const val VOCAB_FILENAME = "sense_ai_vocab.json"
         private const val LABELS_FILENAME = "sense_ai_labels.json"
-        private const val MAX_SEQ_LEN = 20
+        private const val MAX_SEQ_LEN = 24
         private const val MIN_CONFIDENCE_THRESHOLD = 0.40f
     }
 

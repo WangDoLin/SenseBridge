@@ -211,6 +211,47 @@ To produce fluent Text-to-Speech output matching human speech prosody:
 * New visual layout blocks: Delimited with period boundaries `. `.
 * Intra-block line breaks: Delimited with comma pauses `, ` to induce natural TTS breathing intervals.
 
+### 4.3. Sub-Millisecond Image Quality Assessment & Motion Blur Gating
+Blind users cannot visually verify whether the mobile camera is focused, trembling, or operating under suboptimal lighting. SenseBridge runs a pre-OCR evaluation pipeline to eliminate wasted computation on unreadable frames:
+
+#### A. Discrete Gradient Energy Variance (Tremor Blur Estimation)
+Rather than executing a computationally demanding 2D FFT or Laplacian convolution over full 4K frames, the pipeline computes discrete horizontal and vertical gradient magnitudes over the central 50% Region of Interest (ROI) with sub-sampling:
+
+$$\|\nabla I(x, y)\| = |Y(x + \text{step}, y) - Y(x, y)| + |Y(x, y + \text{step}) - Y(x, y)|$$
+
+$$\sigma^2_{\nabla} = \frac{1}{N} \sum_{i=1}^N \left( \|\nabla I_i\| - \mu_{\nabla} \right)^2$$
+
+If $\sigma^2_{\nabla} < 85.0$, the frame is classified as `BLURRED`, and the speech engine proactively prompts: *"Ảnh bị rung mờ, vui lòng giữ yên thiết bị."*
+
+#### B. Photometric Luminance & Specular Contrast Gating
+Using the **ITU-R BT.601** perceptual luminance standard:
+
+$$Y = 0.299 R + 0.587 G + 0.114 B$$
+
+* **Darkness Gate**: $\mu_Y < 38.0 \implies \text{TOO\_DARK}$ (Prompts to enable flashlight or adjust room light).
+* **Glare Gate**: $\mu_Y > 230.0 \implies \text{TOO\_BRIGHT}$ (Prompts to alter incident angle to prevent specular reflection).
+* **Contrast Gate**: $(Y_{\max} - Y_{\min}) / 255.0 < 0.22 \implies \text{INSUFFICIENT\_CONTRAST}$.
+
+*Implementation Reference: [`ScanQualityAssessor.kt`](app/src/main/java/com/sensebridge/input/vision/ScanQualityAssessor.kt).*
+
+### 4.4. Hardware-Accelerated Dynamic Contrast Enhancement
+To boost faint or weathered text on low-contrast surfaces (e.g., thermal receipts, faded bus signs, pharmaceutical blisters), viewport bitmaps undergo hardware-accelerated transformation via an Android GPU `ColorMatrix`:
+
+$$\begin{bmatrix} R' \\ G' \\ B' \\ A' \\ 1 \end{bmatrix} = \begin{bmatrix} 1.25 & 0 & 0 & 0 & 8.0 \\ 0 & 1.25 & 0 & 0 & 8.0 \\ 0 & 0 & 1.25 & 0 & 8.0 \\ 0 & 0 & 0 & 1 & 0 \end{bmatrix} \begin{bmatrix} R \\ G \\ B \\ A \\ 1 \end{bmatrix}$$
+
+*Implementation Reference: [`OcrImagePreprocessor.kt`](app/src/main/java/com/sensebridge/input/vision/OcrImagePreprocessor.kt).*
+
+### 4.5. Semantic Entity Extraction & Smart Document Parsing
+Raw OCR character strings are mapped to structured semantic domains using regex patterns and domain-specific Vietnamese lexicons:
+
+1. **Vietnamese Currency (Banknotes)**: Matches monetary values from 1,000 VND to 500,000 VND and converts numerical values into natural Vietnamese spoken text (e.g., `500.000 đ` $\to$ *"năm trăm nghìn đồng"*).
+2. **Medications & Prescriptions**: Recognizes active pharmaceutical ingredients (Paracetamol, Amoxicillin, Ibuprofen, etc.) and extracts dosage frequencies (e.g., *"uống ngày 2 lần, mỗi lần 1 viên"*).
+3. **Public Transit & Bus Routes**: Detects bus route identifiers and terminal destinations.
+4. **Emergency & Facility Signage**: Identifies exit pathways (`Lối thoát hiểm`), restrooms (`Toilet / WC`), emergency rooms, and floor indicators.
+5. **Receipts & Invoices**: Detects financial transactions and total amounts (`Tổng cộng`, `Thành tiền`).
+
+*Implementation Reference: [`SmartDocumentParser.kt`](app/src/main/java/com/sensebridge/input/vision/SmartDocumentParser.kt).*
+
 ---
 
 ## 5. MULTIMODAL SENSOR FUSION & PRIORITY QUEUE SCHEDULING
@@ -326,19 +367,21 @@ SenseBridge deploys a hierarchical, tiered on-device AI inference pipeline that 
 ```
 
 ### 7.1. Deep Neural Intent Classifier Topology
-Trained on domain-specific Vietnamese assistive interaction corpora:
+Trained on 4,500 domain-specific Vietnamese assistive interaction and scanning samples generated via linguistic pattern expansion and synonym perturbation:
 
 * **Layer Architecture**:
-  1. `InputLayer(shape=(20,))`: Fixed token sequence length of 20 words.
-  2. `Embedding(vocab_size=337, embedding_dim=32)`: Word projection into 32-dimensional semantic latent space.
-  3. `GlobalAveragePooling1D()`: Spatial average pooling providing temporal position invariance.
-  4. `Dense(64, activation='relu')` + `Dropout(0.2)`: Non-linear feature combination with regularization.
-  5. `Dense(32, activation='relu')`: Feature refinement.
-  6. `Dense(num_classes=10, activation='softmax')`: Posterior probability distribution over 10 intent classes.
+  1. `InputLayer(shape=(24,))`: Padded token sequence vector of length 24.
+  2. `Embedding(vocab_size=374, embedding_dim=48)`: Word projection into 48-dimensional dense semantic latent space.
+  3. `Conv1D(filters=64, kernel_size=3, padding='same', activation='relu')`: Local n-gram feature extraction capturing compound terminology (e.g., *"tuyến xe buýt"*, *"đơn thuốc"*).
+  4. `GlobalAveragePooling1D()`: Spatial average pooling providing temporal position invariance.
+  5. `Dense(96, activation='relu')` + `Dropout(0.25)`: Non-linear semantic feature recombination with regularization.
+  6. `Dense(48, activation='relu')`: Intermediate dimension reduction and feature refinement.
+  7. `Dense(num_classes=10, activation='softmax')`: Posterior probability distribution over 10 intent classes.
 
+* **Training Metrics**: Achieved **98.81% validation accuracy** across unseen holdout splits.
 * **Loss Formulation & Optimization**:
-  $$\mathcal{L} = -\sum_{i=1}^{C} y_i \log(\hat{y}_i) \quad (\text{Sparse Categorical Cross-Entropy}), \quad \text{Optimizer: Adam}$$
-* **Quantized Edge Deployment**: Converted to flatbuffer format (`.tflite`), yielding a **$48.4\text{ KB}$** binary with sub-millisecond execution times on mobile CPUs.
+  $$\mathcal{L} = -\sum_{i=1}^{C} y_i \log(\hat{y}_i) \quad (\text{Sparse Categorical Cross-Entropy}), \quad \text{Optimizer: Adam (lr}=0.003)$$
+* **Quantized Edge Deployment**: Converted to flatbuffer format (`.tflite`) with post-training weight quantization, yielding a lightweight **$48.5\text{ KB}$** binary executing in sub-millisecond latency on ARM mobile CPUs without requiring NPU/GPU offload.
 
 ### 7.2. Small Language Model (SLM) Runtime Engine
 Integrated via `com.google.mediapipe.tasks.genai.llminference`:

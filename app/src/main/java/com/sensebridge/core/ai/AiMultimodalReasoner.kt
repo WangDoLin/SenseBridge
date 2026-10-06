@@ -2,6 +2,8 @@ package com.sensebridge.core.ai
 
 import com.sensebridge.core.model.PriorityLevel
 import com.sensebridge.core.model.SpatialDirection
+import com.sensebridge.input.vision.ScannedDomain
+import com.sensebridge.input.vision.SmartDocumentParser
 
 data class AiProactiveInsight(
     val title: String,
@@ -183,8 +185,14 @@ class AiMultimodalReasoner {
     private fun buildReadTextAnswer(snapshot: SceneSnapshot): AiQueryAnswer {
         val text = snapshot.latestText
         return if (!text.isNullOrBlank()) {
+            val parsed = SmartDocumentParser.parse(text)
+            val answer = if (parsed.domain != ScannedDomain.GENERAL_TEXT) {
+                parsed.speechSummary
+            } else {
+                "Văn bản đọc được qua camera là: $text."
+            }
             AiQueryAnswer(
-                answerText = "Văn bản đọc được qua camera là: $text.",
+                answerText = answer,
                 priority = PriorityLevel.ATTENTION_P2
             )
         } else {

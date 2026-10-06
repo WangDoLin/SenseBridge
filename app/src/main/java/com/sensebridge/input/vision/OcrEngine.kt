@@ -85,17 +85,34 @@ class OcrEngine @Inject constructor(
             onComplete(null)
             return
         }
+
+        val parsedResult = SmartDocumentParser.parse(cleanedText)
+        val spokenMessage = if (parsedResult.domain != ScannedDomain.GENERAL_TEXT) {
+            parsedResult.speechSummary
+        } else {
+            cleanedText
+        }
+
+        val displayTitle = when (parsedResult.domain) {
+            ScannedDomain.MEDICATION -> "Thông tin thuốc"
+            ScannedDomain.CURRENCY -> "Mệnh giá tiền"
+            ScannedDomain.TRANSPORTATION_BUS -> "Tuyến xe buýt"
+            ScannedDomain.FACILITY_SIGNAGE -> "Biển chỉ dẫn"
+            ScannedDomain.RECEIPT_BILL -> "Hóa đơn"
+            ScannedDomain.GENERAL_TEXT -> EVENT_TITLE
+        }
+
         eventEngine.submitEvent(
             SenseEvent(
                 source = SensorySource.VISION_OCR,
                 label = EVENT_LABEL,
-                displayTitle = EVENT_TITLE,
-                spokenText = cleanedText,
+                displayTitle = displayTitle,
+                spokenText = spokenMessage,
                 confidence = EVENT_CONFIDENCE,
                 priority = PriorityLevel.ATTENTION_P2
             )
         )
-        onComplete(cleanedText)
+        onComplete(spokenMessage)
     }
 
     private fun extractLines(visionText: Text): List<RecognizedLine> =
