@@ -18,6 +18,7 @@ enum class DialogueIntent {
     SITUATION_INQUIRY,
     SAFETY_CHECK,
     SURROUNDINGS_OBSERVE,
+    OBJECT_IDENTIFICATION,
     READ_TEXT,
     SOUND_INQUIRY,
     HELP_REQUEST,
@@ -221,6 +222,18 @@ class SenseAiDialogueModel @Inject constructor(
                 return prediction.intent
             }
         }
+        val semanticMatch = semanticMatcher.matchSubIntent(input)
+        if (semanticMatch.confidence >= 0.30f) {
+            when (semanticMatch.act) {
+                DialogueAct.OBJECT_INQUIRY -> return DialogueIntent.OBJECT_IDENTIFICATION
+                DialogueAct.IDENTITY_INQUIRY,
+                DialogueAct.GRATITUDE,
+                DialogueAct.FAREWELL,
+                DialogueAct.EMPATHY_SUPPORT,
+                DialogueAct.WELLBEING_INQUIRY -> return DialogueIntent.SMALLTALK
+                else -> {}
+            }
+        }
         return detectRuleIntent(input)
     }
 
@@ -228,6 +241,7 @@ class SenseAiDialogueModel @Inject constructor(
         val text = input.lowercase()
         return when {
             text.containsAny("chào,hello,hi,xin chào,alo") -> DialogueIntent.GREETING
+            text.containsAny("đây là cái gì,cái gì đây,đây là gì,vật này là gì,vật gì đây,đồ gì đây,con gì đây,xe gì đây,trước mặt là cái gì,nhìn xem đây là gì,nhìn xem có gì") -> DialogueIntent.OBJECT_IDENTIFICATION
             text.containsAny("đọc,chữ,biển,bảng,viết gì") -> DialogueIntent.READ_TEXT
             text.containsAny("cứu,cấp cứu,nguy hiểm quá,giúp tôi với,giúp với,cứu tôi") -> DialogueIntent.HELP_REQUEST
             text.containsAny("an toàn,qua đường,băng qua,đi được,đi tiếp,nguy hiểm không,bước tiếp") -> DialogueIntent.SAFETY_CHECK
@@ -260,6 +274,9 @@ class SenseAiDialogueModel @Inject constructor(
             }
             DialogueIntent.SURROUNDINGS_OBSERVE -> {
                 generateSurroundingsReply(snapshot)
+            }
+            DialogueIntent.OBJECT_IDENTIFICATION -> {
+                generateObjectIdentificationReply(snapshot)
             }
             DialogueIntent.READ_TEXT -> {
                 if (!snapshot.latestText.isNullOrBlank()) {
@@ -335,6 +352,30 @@ class SenseAiDialogueModel @Inject constructor(
         }
 
         return "Phía trước ${userProfile.userPronoun} có $objectList$soundInfo. Mức độ ồn là ${snapshot.ambientDecibels.toInt()} đề-xi-ben."
+    }
+
+    private fun generateObjectIdentificationReply(snapshot: SceneSnapshot): String {
+        val target = snapshot.objects.firstOrNull { it.direction == com.sensebridge.core.model.SpatialDirection.CENTER && it.isNear }
+            ?: snapshot.objects.firstOrNull { it.direction == com.sensebridge.core.model.SpatialDirection.CENTER }
+            ?: snapshot.objects.firstOrNull { it.isNear }
+            ?: snapshot.objects.firstOrNull()
+
+        if (target != null) {
+            val dirDesc = target.direction.vietnameseLabel
+            val nearDesc = if (target.isNear) "ở khoảng cách gần" else "ở khoảng cách vừa phải"
+            val base = "Trước mặt ${userProfile.userPronoun} là ${target.vietnameseLabel} ($dirDesc), $nearDesc."
+            return if (!snapshot.latestText.isNullOrBlank()) {
+                "$base Trên vật thể có dòng chữ: \"${snapshot.latestText}\"."
+            } else {
+                base
+            }
+        }
+
+        if (!snapshot.latestText.isNullOrBlank()) {
+            return "Camera chưa nhận diện rõ hình dạng đồ vật, nhưng đọc được dòng chữ: \"${snapshot.latestText}\"."
+        }
+
+        return "Camera chưa quét thấy vật thể nào rõ ràng ở vị trí này. ${userProfile.capitalizedUserPronoun} hãy hướng ống kính lại gần hơn một chút nhé."
     }
 
     private fun generateSoundReply(snapshot: SceneSnapshot): String {

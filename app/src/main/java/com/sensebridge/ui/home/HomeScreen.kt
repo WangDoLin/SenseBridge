@@ -66,6 +66,7 @@ import com.sensebridge.ui.theme.TextSecondary
 @Composable
 fun HomeScreen(
     viewModel: HomeViewModel,
+    floatingViewModel: FloatingAssistantViewModel = androidx.hilt.navigation.compose.hiltViewModel(),
     onNavigate: (String) -> Unit
 ) {
     val context = LocalContext.current
@@ -114,6 +115,11 @@ fun HomeScreen(
                         color = TextSecondary
                     )
                 }
+            }
+
+            // Interactive Floating AI Assistant Bar (Tap to ask 'Đây là cái gì?')
+            item {
+                FloatingAssistantBar(viewModel = floatingViewModel)
             }
 
             // System Status Banner
@@ -293,6 +299,8 @@ fun HomeScreen(
             }
         }
     }
+
+    FloatingAssistantDialog(viewModel = floatingViewModel)
 }
 
 @Composable

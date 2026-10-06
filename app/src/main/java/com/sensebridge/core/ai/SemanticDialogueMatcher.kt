@@ -13,6 +13,7 @@ enum class DialogueAct {
     FAREWELL,
     EMPATHY_SUPPORT,
     WELLBEING_INQUIRY,
+    OBJECT_INQUIRY,
     GENERAL_CHAT
 }
 
@@ -86,6 +87,15 @@ class SemanticDialogueMatcher @Inject constructor() {
                 listOf(
                     "bạn khỏe không", "em khỏe không", "cháu có mệt không", "dạo này thế nào",
                     "hôm nay thế nào", "tình hình bạn sao rồi", "có khỏe không"
+                )
+            ),
+            buildCluster(
+                DialogueAct.OBJECT_INQUIRY,
+                "OBJECT_INQUIRY",
+                listOf(
+                    "đây là cái gì", "đây là gì", "cái gì đây", "vật này là gì", "vật gì đây",
+                    "trước mặt là cái gì", "đồ gì đây", "đây là đồ vật gì", "nhìn xem đây là gì",
+                    "nhìn xem cái gì", "cho tôi biết đây là cái gì", "phía trước là cái gì"
                 )
             )
         )

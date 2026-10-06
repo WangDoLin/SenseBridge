@@ -68,6 +68,23 @@ class SemanticDialogueMatcherTest {
     }
 
     @Test
+    fun matchSubIntent_whenAskingWhatIsThis_matchesObjectInquiry() {
+        val inputs = listOf(
+            "Đây là cái gì?",
+            "Cái gì đây",
+            "Vật này là gì",
+            "Đồ gì đây",
+            "Nhìn xem đây là gì"
+        )
+
+        for (input in inputs) {
+            val result = matcher.matchSubIntent(input)
+            assertEquals("Failed for input: $input", DialogueAct.OBJECT_INQUIRY, result.act)
+            assertTrue("Confidence should be >= 0.25 for $input (got ${result.confidence})", result.confidence >= 0.25f)
+        }
+    }
+
+    @Test
     fun matchSubIntent_whenUnrelatedSafetyQuery_doesNotFalsePositiveSmalltalk() {
         val input = "Có qua đường an toàn không bạn?"
         val result = matcher.matchSubIntent(input, minThreshold = 0.30f)

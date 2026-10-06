@@ -209,6 +209,25 @@ class SenseAiDialogueModelTest {
     }
 
     @Test
+    fun converse_objectIdentification_answersIdentifiedObjectAndText() {
+        memory.recordObject(
+            ObservedObject(
+                label = "cup",
+                vietnameseLabel = "chiếc cốc",
+                direction = SpatialDirection.CENTER,
+                isNear = true
+            )
+        )
+        memory.recordText("COFFEE TIME")
+
+        val response = dialogueModel.converse("Đây là cái gì thế?", memory.getSnapshot())
+
+        assertEquals(DialogueIntent.OBJECT_IDENTIFICATION, response.intent)
+        assertTrue(response.replyText.contains("chiếc cốc"))
+        assertTrue(response.replyText.contains("COFFEE TIME"))
+    }
+
+    @Test
     fun converse_followUp_remembersPreviousContext() {
         dialogueModel.converse("Có an toàn không?", memory.getSnapshot())
 

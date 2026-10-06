@@ -42,6 +42,7 @@ class PersonaAwareDialogueGenerator @Inject constructor() {
             DialogueAct.WELLBEING_INQUIRY -> {
                 generateWellbeingResponse(profile, isRespectful, rand)
             }
+            DialogueAct.OBJECT_INQUIRY,
             DialogueAct.GENERAL_CHAT -> {
                 generateGeneralChatResponse(profile, isRespectful, rand)
             }
