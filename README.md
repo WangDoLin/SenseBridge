@@ -131,7 +131,7 @@ The application transforms commodity smartphones into real-time perceptual assis
 ## 3. Repository Structure
 
 ```
-e:/Health/
+SenseBridge/
 ├── ml/                                  # Machine Learning Training Pipeline
 │   ├── dataset/
 │   │   └── intent_dataset_vi.json       # Vietnamese intent training dataset
