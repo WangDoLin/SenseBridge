@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -17,6 +18,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Psychology
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Vibration
 import androidx.compose.material.icons.filled.Warning
@@ -49,6 +52,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.sensebridge.output.audio.VoicePersona
+import com.sensebridge.ui.navigation.NavRoute
 import com.sensebridge.ui.theme.BgDark
 import com.sensebridge.ui.theme.BorderDark
 import com.sensebridge.ui.theme.P0DangerRed
@@ -64,7 +68,8 @@ import com.sensebridge.ui.theme.TextSecondary
 @Composable
 fun SettingsScreen(
     viewModel: SettingsViewModel,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    onNavigate: ((String) -> Unit)? = null
 ) {
     val context = LocalContext.current
     val config by viewModel.config.collectAsState()
@@ -73,6 +78,7 @@ fun SettingsScreen(
     val voicePitch by viewModel.voicePitch.collectAsState()
     val voiceSpeechRate by viewModel.voiceSpeechRate.collectAsState()
     val selectedPersona by viewModel.selectedPersona.collectAsState()
+    val userProfile by viewModel.userProfile.collectAsState()
 
     Scaffold(
         containerColor = BgDark,
@@ -102,6 +108,77 @@ fun SettingsScreen(
                 .padding(horizontal = 20.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            // User & AI Identity Profile Section
+            item {
+                Text(
+                    text = "DANH XƯNG & TRỢ LÝ AI",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = TextMuted,
+                    modifier = Modifier.padding(top = 8.dp)
+                )
+            }
+
+            item {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = CardDefaults.cardColors(containerColor = SurfaceCard),
+                    border = BorderStroke(2.dp, BorderDark)
+                ) {
+                    Column(modifier = Modifier.padding(18.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Default.Person,
+                                contentDescription = null,
+                                tint = PrimaryBlue,
+                                modifier = Modifier.size(22.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = "HỒ SƠ DANH XƯNG",
+                                style = MaterialTheme.typography.titleMedium,
+                                color = TextPrimary
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(10.dp))
+                        Text(
+                            text = "Tên của bạn: ${userProfile.userPronoun.replaceFirstChar { it.uppercase() }} ${userProfile.userName}",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = TextPrimary
+                        )
+                        Text(
+                            text = "Trợ lý AI: ${userProfile.aiName} (xưng là \"${userProfile.aiPronoun}\")",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = TextSecondary
+                        )
+                        Spacer(modifier = Modifier.height(6.dp))
+                        Text(
+                            text = "Câu chào mẫu: \"${userProfile.buildGreeting()}\"",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = TextMuted
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Button(
+                            onClick = { onNavigate?.invoke(NavRoute.Onboarding.route) },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(44.dp),
+                            shape = RoundedCornerShape(8.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = BgDark),
+                            border = BorderStroke(1.dp, BorderDark)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Psychology,
+                                contentDescription = null,
+                                tint = PrimaryBlue
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("THAY ĐỔI TÊN & CÁCH XƯNG HÔ", color = TextPrimary)
+                        }
+                    }
+                }
+            }
+
             // Background Monitoring Master Switch
             item {
                 Text(

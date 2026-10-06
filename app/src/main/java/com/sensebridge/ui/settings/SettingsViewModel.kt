@@ -7,6 +7,7 @@ import com.sensebridge.core.dispatcher.OutputConfiguration
 import com.sensebridge.core.dispatcher.SensoryDispatcher
 import com.sensebridge.core.engine.EventEngine
 import com.sensebridge.core.model.PriorityLevel
+import com.sensebridge.core.model.UserProfile
 import com.sensebridge.core.monitoring.MonitoringCoordinator
 import com.sensebridge.data.repository.UserPreferencesRepository
 import com.sensebridge.input.sound.DecibelEnergyGate
@@ -15,8 +16,10 @@ import com.sensebridge.output.audio.VoicePersona
 import com.sensebridge.output.haptic.HapticManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -45,6 +48,9 @@ class SettingsViewModel @Inject constructor(
 
     private val _selectedPersona = MutableStateFlow(VoicePersona.DEFAULT)
     val selectedPersona: StateFlow<VoicePersona> = _selectedPersona.asStateFlow()
+
+    val userProfile: StateFlow<UserProfile> = preferencesRepository.userProfileFlow
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), UserProfile.DEFAULT)
 
     init {
         viewModelScope.launch {
@@ -119,6 +125,12 @@ class SettingsViewModel @Inject constructor(
 
     fun testVoiceSpeech() {
         textToSpeechManager.speakSample()
+    }
+
+    fun updateUserProfile(userName: String, userPronoun: String, aiName: String, aiPronoun: String) {
+        viewModelScope.launch {
+            preferencesRepository.updateUserProfile(userName, userPronoun, aiName, aiPronoun)
+        }
     }
 
     fun clearAllLogs() {

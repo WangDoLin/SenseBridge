@@ -11,6 +11,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -18,6 +20,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.sensebridge.core.monitoring.MonitoringCoordinator
+import com.sensebridge.data.repository.UserPreferencesRepository
 import com.sensebridge.output.visual.AlertOverlayManager
 import com.sensebridge.ui.blind.BlindAssistScreen
 import com.sensebridge.ui.blind.BlindAssistViewModel
@@ -31,6 +34,8 @@ import com.sensebridge.ui.home.HomeViewModel
 import com.sensebridge.ui.navigation.NavRoute
 import com.sensebridge.ui.ocr.OcrReaderScreen
 import com.sensebridge.ui.ocr.OcrReaderViewModel
+import com.sensebridge.ui.onboarding.OnboardingScreen
+import com.sensebridge.ui.onboarding.OnboardingViewModel
 import com.sensebridge.ui.settings.SettingsScreen
 import com.sensebridge.ui.settings.SettingsViewModel
 import com.sensebridge.ui.theme.BgDark
@@ -46,6 +51,9 @@ class MainActivity : ComponentActivity() {
 
     @Inject
     lateinit var monitoringCoordinator: MonitoringCoordinator
+
+    @Inject
+    lateinit var preferencesRepository: UserPreferencesRepository
 
     private val requestPermissionsLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -67,10 +75,18 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = BgDark
                 ) {
-                    Box(modifier = Modifier.fillMaxSize()) {
-                        SenseBridgeNavGraph()
-                        // Drawn last so it covers whichever screen is open
-                        AlertFlashOverlay(overlayManager = alertOverlayManager)
+                    val userProfile by preferencesRepository.userProfileFlow.collectAsState(initial = null)
+                    if (userProfile != null) {
+                        Box(modifier = Modifier.fillMaxSize()) {
+                            val startRoute = if (userProfile?.isOnboardingCompleted == true) {
+                                NavRoute.Home.route
+                            } else {
+                                NavRoute.Onboarding.route
+                            }
+                            SenseBridgeNavGraph(startDestination = startRoute)
+                            // Drawn last so it covers whichever screen is open
+                            AlertFlashOverlay(overlayManager = alertOverlayManager)
+                        }
                     }
                 }
             }
@@ -101,13 +117,26 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun SenseBridgeNavGraph() {
+fun SenseBridgeNavGraph(
+    startDestination: String = NavRoute.Home.route
+) {
     val navController = rememberNavController()
 
     NavHost(
         navController = navController,
-        startDestination = NavRoute.Home.route
+        startDestination = startDestination
     ) {
+        composable(NavRoute.Onboarding.route) {
+            val viewModel: OnboardingViewModel = hiltViewModel()
+            OnboardingScreen(
+                viewModel = viewModel,
+                onCompleted = {
+                    navController.navigate(NavRoute.Home.route) {
+                        popUpTo(NavRoute.Onboarding.route) { inclusive = true }
+                    }
+                }
+            )
+        }
         composable(NavRoute.Home.route) {
             val viewModel: HomeViewModel = hiltViewModel()
             HomeScreen(
@@ -147,7 +176,8 @@ fun SenseBridgeNavGraph() {
             val viewModel: SettingsViewModel = hiltViewModel()
             SettingsScreen(
                 viewModel = viewModel,
-                onBack = { navController.popBackStack() }
+                onBack = { navController.popBackStack() },
+                onNavigate = { route -> navController.navigate(route) }
             )
         }
     }

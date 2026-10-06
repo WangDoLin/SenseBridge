@@ -76,6 +76,7 @@ fun HomeScreen(
     val connectedDeviceName by viewModel.connectedDeviceName.collectAsState()
     val isMutedForPrivacy by viewModel.isMutedForPrivacy.collectAsState()
     val recentEvents by viewModel.recentEvents.collectAsState()
+    val userProfile by viewModel.userProfile.collectAsState()
 
     Scaffold(
         containerColor = BgDark
@@ -91,13 +92,24 @@ fun HomeScreen(
             // Header
             item {
                 Column {
+                    val hasCustomName = userProfile.userName.isNotBlank() && !userProfile.userName.equals("bạn", ignoreCase = true)
+                    val headerTitle = if (hasCustomName) {
+                        "Xin chào, ${userProfile.userPronoun} ${userProfile.userName}!"
+                    } else {
+                        "SenseBridge"
+                    }
+                    val headerSubtitle = if (userProfile.aiName.isNotBlank() && !userProfile.aiName.equals("SenseBridge", ignoreCase = true)) {
+                        "Trợ lý ${userProfile.aiName} luôn đồng hành cùng ${userProfile.userPronoun}"
+                    } else {
+                        "Trợ lý giác quan nhân tạo đa tác vụ"
+                    }
                     Text(
-                        text = "SenseBridge",
+                        text = headerTitle,
                         style = MaterialTheme.typography.headlineLarge,
                         color = PrimaryBlue
                     )
                     Text(
-                        text = "Trợ lý giác quan nhân tạo đa tác vụ",
+                        text = headerSubtitle,
                         style = MaterialTheme.typography.bodyLarge,
                         color = TextSecondary
                     )

@@ -4,6 +4,8 @@ import com.sensebridge.core.engine.EventEngine
 import com.sensebridge.core.model.PriorityLevel
 import com.sensebridge.core.model.SenseEvent
 import com.sensebridge.core.model.SensorySource
+import com.sensebridge.core.model.UserProfile
+import com.sensebridge.data.repository.UserPreferencesRepository
 import com.sensebridge.output.audio.TextToSpeechManager
 import com.sensebridge.output.haptic.HapticManager
 import kotlinx.coroutines.CoroutineScope
@@ -25,7 +27,8 @@ class MultimodalAiAssistantEngine @Inject constructor(
     private val hapticManager: HapticManager,
     private val neuralClassifier: SenseAiNeuralClassifier? = null,
     private val slmEngine: OnDeviceSlmInferenceEngine? = null,
-    private val continualLearningEngine: ContinualLearningEngine? = null
+    private val continualLearningEngine: ContinualLearningEngine? = null,
+    private val preferencesRepository: UserPreferencesRepository? = null
 ) {
     companion object {
         private const val DEFAULT_COOLDOWN_MS = 7000L
@@ -51,7 +54,18 @@ class MultimodalAiAssistantEngine @Inject constructor(
     private var observationJob: Job? = null
 
     init {
+        preferencesRepository?.let { repo ->
+            engineScope.launch {
+                repo.userProfileFlow.collect { profile ->
+                    dialogueModel.userProfile = profile
+                }
+            }
+        }
         startObservation()
+    }
+
+    fun setUserProfile(profile: UserProfile) {
+        dialogueModel.userProfile = profile
     }
 
     fun startObservation() {

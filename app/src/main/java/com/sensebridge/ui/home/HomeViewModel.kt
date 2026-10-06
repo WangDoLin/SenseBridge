@@ -2,23 +2,32 @@ package com.sensebridge.ui.home
 
 import android.content.Context
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.sensebridge.core.engine.EventEngine
 import com.sensebridge.core.model.PriorityLevel
 import com.sensebridge.core.model.SenseEvent
 import com.sensebridge.core.model.SensorySource
 import com.sensebridge.core.model.SpatialDirection
+import com.sensebridge.core.model.UserProfile
 import com.sensebridge.core.monitoring.MonitoringCoordinator
+import com.sensebridge.data.repository.UserPreferencesRepository
 import com.sensebridge.output.audio.AudioRouteManager
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val eventEngine: EventEngine,
     private val monitoringCoordinator: MonitoringCoordinator,
-    private val audioRouteManager: AudioRouteManager
+    private val audioRouteManager: AudioRouteManager,
+    private val preferencesRepository: UserPreferencesRepository
 ) : ViewModel() {
+
+    val userProfile: StateFlow<UserProfile> = preferencesRepository.userProfileFlow
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), UserProfile.DEFAULT)
 
     val isPaused: StateFlow<Boolean> = eventEngine.isPaused
     val recentEvents: StateFlow<List<SenseEvent>> = eventEngine.recentEvents

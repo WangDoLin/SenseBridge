@@ -1,6 +1,7 @@
 package com.sensebridge.core.ai
 
 import com.sensebridge.core.model.PriorityLevel
+import com.sensebridge.core.model.UserProfile
 import javax.inject.Inject
 
 enum class SituationState(val vietnameseName: String) {
@@ -64,6 +65,7 @@ class SenseAiDialogueModel @Inject constructor(
     }
 
     private val conversationHistory = mutableListOf<DialogueTurn>()
+    var userProfile: UserProfile = UserProfile.DEFAULT
 
     fun classifySituation(snapshot: SceneSnapshot): SituationClassificationResult {
         val hasSiren = snapshot.sounds.any { it.label.containsAny(SIREN_KEYWORDS) }
@@ -245,7 +247,8 @@ class SenseAiDialogueModel @Inject constructor(
     ): String {
         return when (intent) {
             DialogueIntent.GREETING -> {
-                "Xin chào bạn! Mình là AI SenseBridge. Hiện tại ${situation.summary} Mình luôn sẵn sàng quan sát và hỗ trợ bạn."
+                val greeting = userProfile.buildGreeting()
+                "$greeting Hiện tại ${situation.summary} ${userProfile.capitalizedAiPronoun} luôn sẵn sàng quan sát và hỗ trợ ${userProfile.userPronoun}."
             }
             DialogueIntent.SITUATION_INQUIRY -> {
                 "Báo cáo tình huống: ${situation.summary} Mức ồn môi trường hiện tại là ${snapshot.ambientDecibels.toInt()} đề-xi-ben."
@@ -267,7 +270,7 @@ class SenseAiDialogueModel @Inject constructor(
                 generateSoundReply(snapshot)
             }
             DialogueIntent.HELP_REQUEST -> {
-                "Đừng lo lắng, mình đang kích hoạt chế độ hỗ trợ khẩn cấp. Tình hình hiện tại: ${situation.summary} Hãy đứng yên tại vị trí an toàn."
+                "Đừng lo lắng, ${userProfile.aiPronoun} đang kích hoạt chế độ hỗ trợ khẩn cấp. Tình hình hiện tại: ${situation.summary} ${userProfile.capitalizedUserPronoun} hãy đứng yên tại vị trí an toàn."
             }
             DialogueIntent.FOLLOW_UP -> {
                 val previousTurn = conversationHistory.lastOrNull()
@@ -278,7 +281,7 @@ class SenseAiDialogueModel @Inject constructor(
                 generateSmalltalkReply(rawInput)
             }
             DialogueIntent.GENERAL -> {
-                "Mình đã ghi nhận. Quan sát hiện tại cho thấy: ${situation.summary} Bạn có thể hỏi mình về độ an toàn, vật cản phía trước hoặc đọc chữ."
+                "${userProfile.capitalizedAiPronoun} đã ghi nhận. Quan sát hiện tại cho thấy: ${situation.summary} ${userProfile.capitalizedUserPronoun} có thể hỏi ${userProfile.aiPronoun} về độ an toàn, vật cản phía trước hoặc đọc chữ."
             }
         }
     }
@@ -289,17 +292,17 @@ class SenseAiDialogueModel @Inject constructor(
     ): String {
         return when (situation.state) {
             SituationState.EMERGENCY_HAZARD -> {
-                "Tuyệt đối chưa an toàn! ${situation.summary} Bạn hãy dừng lại ngay."
+                "Tuyệt đối chưa an toàn! ${situation.summary} ${userProfile.capitalizedUserPronoun} hãy dừng lại ngay."
             }
             SituationState.STREET_TRAFFIC -> {
                 val vehicle = snapshot.objects.firstOrNull { it.label.containsAny(VEHICLE_KEYWORDS) }
                 val position = vehicle?.direction?.vietnameseLabel ?: "phía trước"
-                "Chưa an toàn để di chuyển: Có xe ở $position. Hãy chú ý lắng nghe và quan sát trước khi bước tiếp."
+                "Chưa an toàn để di chuyển: Có xe ở $position. ${userProfile.capitalizedUserPronoun} hãy chú ý lắng nghe và quan sát trước khi bước tiếp."
             }
             SituationState.INDOOR_NAVIGATION -> {
                 val hazard = snapshot.objects.firstOrNull { it.label.containsAny(HAZARD_KEYWORDS) }
                 if (hazard != null) {
-                    "Cần cẩn thận: Có ${hazard.vietnameseLabel} ${hazard.direction.vietnameseLabel}. Hãy bước chậm lại."
+                    "Cần cẩn thận: Có ${hazard.vietnameseLabel} ${hazard.direction.vietnameseLabel}. ${userProfile.capitalizedUserPronoun} hãy bước chậm lại."
                 } else {
                     "Khu vực trong nhà tương đối an toàn, có một vài vật dụng nhưng không gây nguy hiểm lớn."
                 }
@@ -307,7 +310,7 @@ class SenseAiDialogueModel @Inject constructor(
             SituationState.SOCIAL_MEETING,
             SituationState.READING_SIGNAGE,
             SituationState.SAFE_QUIET -> {
-                "Khu vực hiện tại rất an toàn. Không có xe cộ hay mối nguy hiểm nào phía trước, bạn có thể yên tâm."
+                "Khu vực hiện tại rất an toàn. Không có xe cộ hay mối nguy hiểm nào phía trước, ${userProfile.userPronoun} có thể yên tâm."
             }
         }
     }
@@ -329,7 +332,7 @@ class SenseAiDialogueModel @Inject constructor(
             ""
         }
 
-        return "Phía trước bạn có $objectList$soundInfo. Mức độ ồn là ${snapshot.ambientDecibels.toInt()} đề-xi-ben."
+        return "Phía trước ${userProfile.userPronoun} có $objectList$soundInfo. Mức độ ồn là ${snapshot.ambientDecibels.toInt()} đề-xi-ben."
     }
 
     private fun generateSoundReply(snapshot: SceneSnapshot): String {
@@ -346,16 +349,16 @@ class SenseAiDialogueModel @Inject constructor(
         val text = rawInput.lowercase()
         return when {
             text.containsAny("cảm ơn,thanks") -> {
-                "Rất vui được hỗ trợ bạn! Cần quan sát thêm gì cứ hỏi mình nhé."
+                userProfile.buildGratitudeReply()
             }
             text.containsAny("bạn là ai,tên gì,tên là gì,tên bạn,bạn tên") -> {
-                "Mình là SenseAI, trợ lý giác quan đa phương thức tích hợp sẵn trong ứng dụng SenseBridge."
+                userProfile.buildIdentityReply()
             }
             text.containsAny("tạm biệt,bye") -> {
-                "Tạm biệt bạn! Chúc bạn có một hành trình an toàn và thuận tiện."
+                "Tạm biệt ${userProfile.userPronoun}! Chúc ${userProfile.userPronoun} có một hành trình an toàn và thuận tiện."
             }
             else -> {
-                "Mình luôn ở đây lắng nghe và quan sát để bảo vệ sự an toàn của bạn."
+                "${userProfile.capitalizedAiPronoun} luôn ở đây lắng nghe và quan sát để bảo vệ sự an toàn của ${userProfile.userPronoun}."
             }
         }
     }
