@@ -1,44 +1,21 @@
-SenseBridge Non-Commercial (Healthcare & Humanitarian Exception) License
-Version 1.0, October 2026
+MIT License
+
 Copyright (c) 2026 SenseBridge Contributors (WangDoLin)
 
-TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-1. DEFINITIONS
-"Software" refers to the source code, object code, documentation, machine learning models, and associated assets of the SenseBridge platform.
-"Commercial Use" means using, integrating, deploying, sublicensing, distributing, or offering the Software (or any derivative work thereof) for monetary compensation, revenue generation, subscription fees, commercial licensing, or proprietary enterprise monetization.
-"Healthcare Services" means medical care, clinical applications, hospital operations, patient rehabilitation, assistive health technologies for individuals with disabilities, and medical diagnostic or caregiving services.
-"Charitable Causes" means non-profit, humanitarian, philanthropic, non-governmental (NGO), and donation-based public welfare initiatives whose primary objective is social good and accessibility assistance.
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
 
-2. NON-COMMERCIAL GRANT OF RIGHTS
-Subject to the terms and conditions of this License, each Contributor hereby grants to You a perpetual, worldwide, non-exclusive, no-charge, royalty-free license to use, reproduce, modify, display, perform, compile, and distribute the Software and derivative works for:
-(a) Personal, individual, and household use;
-(b) Educational, university, and academic purposes;
-(c) Scientific and open research purposes;
-(d) Non-commercial open-source development and public welfare contributions.
-
-3. COMMERCIAL USE RESTRICTION AND EXPLICIT EXCEPTIONS
-(a) GENERAL COMMERCIAL PROHIBITION:
-Except as expressly provided in Subsections 3(b) and 3(c), any Commercial Use of the Software, in whole or in part, or in modified or derivative form, is STRICTLY PROHIBITED without prior express written permission from the copyright holders.
-
-(b) HEALTHCARE AND MEDICAL SERVICES EXCEPTION:
-Commercial Use IS PERMITTED and explicitly authorized for healthcare, medical, clinical, and assistive health-related applications. Hospitals, clinics, rehabilitation centers, medical device companies, and health practitioners may freely use, integrate, deploy, and provide services incorporating this Software for the diagnosis, safety, rehabilitation, caregiving, and assistance of patients and individuals with visual, auditory, or motor disabilities, without payment of licensing fees or royalties.
-
-(c) CHARITABLE AND HUMANITARIAN EXCEPTION:
-Commercial Use, fundraising, and donation-based operations ARE PERMITTED and explicitly authorized for recognized charities, non-profit entities, humanitarian missions, and philanthropic organizations. Such entities may collect donations, fundraise, and deploy the Software in public welfare programs dedicated to disability support, community accessibility, and social assistance without licensing fees or royalties.
-
-4. REDISTRIBUTION AND ATTRIBUTION
-You may redistribute copies of the Software or derivative works thereof in any medium, with or without modifications, provided that:
-(a) You include a verbatim copy of this License with every copy distributed;
-(b) You retain all copyright, attribution, and patent notices from the original Software;
-(c) You prominently state that You modified the files if any modifications were made;
-(d) Any derivative work based on the Software must remain subject to the exact terms of this License, prohibiting unauthorized commercial exploitation while preserving healthcare and charitable exceptions.
-
-5. TRADEMARKS
-This License does not grant permission to use the trade names, trademarks, service marks, or product names of SenseBridge or its contributors, except as required for reasonable and customary use in describing the origin of the Software.
-
-6. DISCLAIMER OF WARRANTY
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, TITLE, AND NON-INFRINGEMENT. IN NO EVENT SHALL THE AUTHORS, COPYRIGHT HOLDERS, OR CONTRIBUTORS BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT, OR OTHERWISE, ARISING FROM, OUT OF, OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-7. LIMITATION OF LIABILITY
-IN NO EVENT SHALL THE COPYRIGHT HOLDERS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT, OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.

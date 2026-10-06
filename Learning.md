@@ -18,7 +18,7 @@
 6. [Tactile Haptic Waveform Synthesis & Psychoacoustics](#6-tactile-haptic-waveform-synthesis--psychoacoustics)
 7. [On-Device Artificial Intelligence & Continual Learning Architecture](#7-on-device-artificial-intelligence--continual-learning-architecture)
 8. [Embedded Systems Architecture & R8 Compiler Optimization](#8-embedded-systems-architecture--r8-compiler-optimization)
-9. [Assistive Ethics, Zero-Cloud Privacy & Non-Commercial Licensing](#9-assistive-ethics-zero-cloud-privacy--non-commercial-licensing)
+9. [Assistive Ethics, Zero-Cloud Privacy & Open-Source MIT Licensing](#9-assistive-ethics-zero-cloud-privacy--open-source-mit-licensing)
 10. [Appendix: System Constants & Mathematical Parameter Reference](#10-appendix-system-constants--mathematical-parameter-reference)
 
 ---
@@ -386,7 +386,7 @@ Camera processing rates are dynamically governed by environmental activity throu
 
 ---
 
-## 9. ASSISTIVE ETHICS, ZERO-CLOUD PRIVACY & NON-COMMERCIAL LICENSING
+## 9. ASSISTIVE ETHICS, ZERO-CLOUD PRIVACY & OPEN-SOURCE MIT LICENSING
 
 ### 9.1. Zero-Cloud Privacy by Design
 Individuals with sensory disabilities represent an exceptionally vulnerable population regarding data autonomy. Transmitting video feeds of private living quarters or ambient audio recordings to external cloud servers presents severe surveillance risks.
@@ -397,10 +397,10 @@ Individuals with sensory disabilities represent an exceptionally vulnerable popu
 During automated narration over headphones or external speakers:
 * If ambient human conversation is detected in the environment (`speech` class via YAMNet or speech recognizer), narration volume automatically reduces or silences to avoid disclosing private information (e.g., medical prescriptions, identity documents) to nearby individuals.
 
-### 9.3. Humanitarian & Healthcare Exemption Licensing
-SenseBridge is protected by a customized public license designed to:
-* **Prohibit Commercial Monopolization**: Precludes proprietary vendors from rebranding open assistive technology for predatory pricing.
-* **Exempt Healthcare & Charitable Missions**: Hospitals, non-profit organizations, rehabilitation centers, and public welfare foundations maintain unrestricted, royalty-free usage and distribution rights.
+### 9.3. Open-Source MIT Licensing & Assistive Technology Commons
+SenseBridge is released under the permissive **MIT License**:
+* **Unrestricted Freedom**: Grants researchers, clinics, individual users, and developer communities the right to use, modify, merge, publish, distribute, sublicense, and deploy the software freely.
+* **Open Accessibility Commons**: Encourages global contributions to open-source assistive technologies, accelerating innovations for individuals with visual and hearing impairments.
 
 ---
 
