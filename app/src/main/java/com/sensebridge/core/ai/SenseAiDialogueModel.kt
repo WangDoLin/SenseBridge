@@ -51,6 +51,8 @@ class SenseAiDialogueModel @Inject constructor(
     private val neuralClassifier: SenseAiNeuralClassifier? = null,
     private val slmEngine: OnDeviceSlmInferenceEngine? = null,
     private val continualLearningEngine: ContinualLearningEngine? = null,
+    private val semanticMatcher: SemanticDialogueMatcher = SemanticDialogueMatcher(),
+    private val personaNlgEngine: PersonaAwareDialogueGenerator = PersonaAwareDialogueGenerator(),
     private val maxHistoryTurns: Int = 5
 ) {
     companion object {
@@ -166,7 +168,7 @@ class SenseAiDialogueModel @Inject constructor(
         val memoryContext = continualLearningEngine?.retrieveEpisodicMemory(input, snapshot)
 
         val slmReply = if (slmEngine != null && slmEngine.isReady()) {
-            slmEngine.generateResponse(input, snapshot)
+            slmEngine.generateResponse(input, snapshot, userProfile)
         } else {
             null
         }
@@ -346,21 +348,8 @@ class SenseAiDialogueModel @Inject constructor(
     }
 
     private fun generateSmalltalkReply(rawInput: String): String {
-        val text = rawInput.lowercase()
-        return when {
-            text.containsAny("cảm ơn,thanks") -> {
-                userProfile.buildGratitudeReply()
-            }
-            text.containsAny("bạn là ai,tên gì,tên là gì,tên bạn,bạn tên") -> {
-                userProfile.buildIdentityReply()
-            }
-            text.containsAny("tạm biệt,bye") -> {
-                "Tạm biệt ${userProfile.userPronoun}! Chúc ${userProfile.userPronoun} có một hành trình an toàn và thuận tiện."
-            }
-            else -> {
-                "${userProfile.capitalizedAiPronoun} luôn ở đây lắng nghe và quan sát để bảo vệ sự an toàn của ${userProfile.userPronoun}."
-            }
-        }
+        val semanticMatch = semanticMatcher.matchSubIntent(rawInput)
+        return personaNlgEngine.generateSmalltalk(semanticMatch.act, userProfile)
     }
 
     private fun determineResponsePriority(

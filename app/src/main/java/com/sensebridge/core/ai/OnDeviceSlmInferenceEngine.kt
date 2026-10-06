@@ -64,14 +64,15 @@ class OnDeviceSlmInferenceEngine @Inject constructor(
 
     suspend fun generateResponse(
         userInput: String,
-        snapshot: SceneSnapshot
+        snapshot: SceneSnapshot,
+        profile: com.sensebridge.core.model.UserProfile = com.sensebridge.core.model.UserProfile.DEFAULT
     ): String? = withContext(Dispatchers.Default) {
         if (!isInitialized || llmInference == null) {
             val initialized = initialize()
             if (!initialized) return@withContext null
         }
 
-        val prompt = formatMultimodalPrompt(userInput, snapshot)
+        val prompt = formatMultimodalPrompt(userInput, snapshot, profile)
         inferenceMutex.withLock {
             try {
                 val response = llmInference?.generateResponse(prompt)
@@ -91,7 +92,11 @@ class OnDeviceSlmInferenceEngine @Inject constructor(
         isInitialized = false
     }
 
-    fun formatMultimodalPrompt(userInput: String, snapshot: SceneSnapshot): String {
+    fun formatMultimodalPrompt(
+        userInput: String,
+        snapshot: SceneSnapshot,
+        profile: com.sensebridge.core.model.UserProfile = com.sensebridge.core.model.UserProfile.DEFAULT
+    ): String {
         val objectList = if (snapshot.objects.isNotEmpty()) {
             snapshot.objects.take(4).joinToString(", ") {
                 "${it.vietnameseLabel} (${it.direction.vietnameseLabel})"
@@ -114,15 +119,16 @@ class OnDeviceSlmInferenceEngine @Inject constructor(
 
         return """
             <start_of_turn>user
-            Bạn là SenseAI, trợ lý giác quan thông minh cho người khiếm thị/khiếm thính.
+            Bạn là ${profile.aiName} (tự xưng là '${profile.aiPronoun}'), trợ lý giác quan thông minh cho ${profile.userPronoun} ${profile.userName}.
+            Quy tắc xưng hô: Bạn xưng là '${profile.aiPronoun}' và gọi người dùng là '${profile.userPronoun}'.
             Ngữ cảnh môi trường hiện tại:
             - Vật thể camera nhìn thấy: $objectList
             - Chữ camera đọc được: $ocrText
             - Âm thanh ghi nhận: $soundInfo
             - Mức ồn: ${snapshot.ambientDecibels.toInt()} dB
 
-            Người dùng nói: $userInput
-            Hãy trả lời bằng tiếng Việt tự nhiên, thân thiện và ngắn gọn trong 1 đến 2 câu.<end_of_turn>
+            ${profile.capitalizedUserPronoun} nói: $userInput
+            Hãy trả lời bằng tiếng Việt tự nhiên, phù hợp với cách xưng hô và ngắn gọn trong 1 đến 2 câu.<end_of_turn>
             <start_of_turn>model
         """.trimIndent()
     }
